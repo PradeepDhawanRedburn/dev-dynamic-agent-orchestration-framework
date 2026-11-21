@@ -24,6 +24,13 @@ Written against LangGraph 1.2.24 documentation, read 21 November 2026.
 | S-14 | `max_concurrency` in the run configuration limits parallel `Send` branches | From memory | Enforce concurrency with a semaphore in the node |
 | S-15 | Mounting one compiled subgraph under two node names keeps checkpoint namespaces distinct | Believed allowed | Compile the subgraph twice |
 | S-16 | `with_structured_output(schema, include_raw=True)` returns `raw`, `parsed` and `parsing_error` | From memory | Read usage another way |
+| S-17 | The encrypted serialiser works with the PostgreSQL checkpointer, with the key from `LANGGRAPH_AES_KEY` | Read in documentation, not run | Rely on database encryption only; record the gap |
+| S-18 | The middleware named in `docs/governance/lang-family-controls.md` exists in the pinned LangChain version and composes in the stated order | Names read in documentation; some need recent versions | Replace the missing one with custom middleware |
+| S-19 | `PIIMiddleware` accepts custom detectors for names and account identifiers | Not read | Write a custom middleware |
+| S-20 | A compiled graph can export its own Mermaid diagram | From memory | Keep hand-written diagrams only |
+| S-21 | The Foundry tracer carries custom metadata on every span, and content can be hidden or masked by classification | Not run | Use OpenTelemetry directly with redaction in the collector |
+| S-22 | `get_state_history` returns enough to link a human decision to the state it was made on | Read, not run | Store the needed state reference in the decision register directly |
+| S-23 | What content filters and prompt-attack detection Foundry applies to the chosen deployments, and what is configurable | Not read | Rely on platform controls only; record the gap |
 
 ## Also in the spike
 

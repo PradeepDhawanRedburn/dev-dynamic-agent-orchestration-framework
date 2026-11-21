@@ -3,7 +3,7 @@
 Things the architect cannot define, because they are your organisation's knowledge, decisions or
 access. Each has an id cited by the tool catalogue, the skills and the work packages.
 
-**Do first:** H-14, H-06, H-08 and H-10 block the first release (Small tier). H-16 is a quick decision.
+**Do first:** H-14, H-06, H-08 and H-10 block the first release (Small tier). H-16 and H-22 are quick decisions. H-17 to H-21 are for the group functions; see [docs/governance/](../governance/README.md).
 
 | Id | Action | Who (role) | How | Until it is done | Blocks |
 | --- | --- | --- | --- | --- | --- |
@@ -23,6 +23,12 @@ access. Each has an id cited by the tool catalogue, the skills and the work pack
 | H-14 | Provision Microsoft Foundry | Cloud platform owner | A Foundry project, the model deployments, and a second deployment of a different model for the Reviewer (ADR-0009). Record deployment names and quotas. | Nothing can run | WP-01 |
 | H-15 | Choose and register the human channel | Repository owner | Decide Teams, a web page or both, and register the application so decision cards can be sent. | Human gates have no front door | WP-09 |
 | H-16 | Decide ADR-0027 | Repository owner | Accept or change the proposal to give permanent agents role skills and a tool catalogue. | The loader in WP-03 does not know whether to assemble skills | WP-03 |
+| H-17 | Decide on LangSmith | Information security, with the repository owner | Read the LangSmith section of `docs/governance/lang-family-controls.md`. Choose: none, or self-hosted on AKS. If self-hosted, ask the vendor about the Enterprise licence and its cost. | Evaluation and review tooling is undecided | WP-10 |
+| H-18 | Answer the Legal and Compliance questions | Legal; Compliance | Work through the questions in `docs/governance/function-briefs.md`. Record answers as a document in `docs/governance/` or as issues. State which regulations and policies apply. | The platform cannot be assessed for production use | Phase 5; retention blocks WP-12 |
+| H-19 | Decide what trace content is stored for Confidential work | Information security | Choose: full content, masked content, or hashes only. Applies per data classification. | Tracing for Confidential assignments stays off | WP-10 |
+| H-20 | Review the security design and threat model | IT security; information security | Review `docs/architecture/governance-and-security.md`, `azure-foundry.md` and the control matrix. Raise findings as issues labelled `risk`. Schedule penetration and red-team testing before production. | Security is self-assessed by the architect only | WP-12; Phase 5 |
+| H-21 | Classify the system under your AI governance framework | AI governance | Assess risk level, required oversight and documentation. Confirm the human gates are sufficient. Agree evaluation thresholds with the Leads' human counterparts. | No AI governance approval | Phase 5 |
+| H-22 | Decide ADR-0029 | Repository owner | Accept or change the proposed use of the LangChain family. | Implementers lack the middleware lists and tracing approach | WP-03, WP-10 |
 
 ## How to hand something over
 

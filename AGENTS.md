@@ -27,6 +27,8 @@ These rules apply to every implementer, human or coding agent.
 - **Every side effect is idempotent.** Nodes can be retried and are re-run from the top when an
   interrupt resumes.
 - **Prompts live in `agents/`,** not in code. Change one by pull request, bump its version and run `python3 scripts/check_agents.py` (ADR-0025).
+- **Controls are documented.** A change that adds, removes or alters a control updates `docs/governance/control-matrix.md` in the same pull request.
+- **Middleware is a fixed list.** Use only what `docs/governance/lang-family-controls.md` allows; never the ones it forbids.
 - **No secrets in the repository,** in prompts, in graph state or in traces.
 
 ## Definition of done for a pull request

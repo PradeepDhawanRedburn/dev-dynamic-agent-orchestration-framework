@@ -36,5 +36,6 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0026](0026-solution-architect-and-ai-specialist.md) | Add a Solution Architect and an AI Specialist | Accepted |
 | [0027](0027-role-skills-and-tool-catalogue.md) | Permanent agents have role skills and a tool catalogue | Proposed |
 | [0028](0028-discovery-stage-and-requirement-baseline.md) | A discovery stage and an approved requirement baseline before any delivery | Accepted |
+| [0029](0029-use-of-the-langchain-family.md) | How the LangChain family of tools is used | Proposed |
 
 New ADRs use [template.md](template.md).

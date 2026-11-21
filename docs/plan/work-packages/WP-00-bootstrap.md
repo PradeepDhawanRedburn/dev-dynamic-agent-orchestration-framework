@@ -18,6 +18,7 @@ A Python project that builds, lints and tests in CI, so every later work package
 2. Create `src/orchestrator/` and `tests/` using the layout in the architecture overview.
 3. Add a GitHub Actions workflow that runs ruff, mypy, pytest and `python3 scripts/check_agents.py` on every pull request. Pin third-party actions to a commit SHA and grant least token permissions.
 4. Add the issue labels named in AGENTS.md.
+5. Generate a list of every resolved dependency with its licence, and commit it as `docs/governance/dependency-licences.md` for Legal.
 
 ## Acceptance criteria
 

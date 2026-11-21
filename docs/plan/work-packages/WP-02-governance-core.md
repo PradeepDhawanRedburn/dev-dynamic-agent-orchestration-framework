@@ -25,6 +25,8 @@ The tested reference modules, moved into `src/` with real persistence.
 
 ## Acceptance criteria
 
+- [ ] The decision register exists with the fields in `docs/governance/traceability-and-decisions.md`; a timeout is stored as a timeout (tested).
+- [ ] Checkpoints are encrypted if S-17 passed, and pickle fallback is not enabled (tested).
 - [ ] The 52 reference tests pass against the in-memory implementations.
 - [ ] The same behavioural tests pass against PostgreSQL in CI.
 - [ ] Concurrent reservations never overspend a scope (tested).

@@ -11,6 +11,8 @@ Every run is traceable in Application Insights, and prompt or model changes are 
 
 - ADR-0014
 - ADR-0025
+- ADR-0029
+- docs/governance/traceability-and-decisions.md
 - docs/architecture/azure-foundry.md
 - docs/architecture/roles.md
 
@@ -27,6 +29,14 @@ Every run is traceable in Application Insights, and prompt or model changes are 
 - [ ] A run can be found in Application Insights by `project_id` and followed to a specialist's tool call.
 - [ ] Changing a prompt in `agents/` without passing the evaluation job cannot be merged.
 - [ ] The adversarial set shows no case reaching a tool outside its grant.
+
+## Added by ADR-0029
+
+- Put every identifier in `docs/governance/traceability-and-decisions.md` on every span and audit event.
+- A test follows one claim from a deliverable back to the original request using stored identifiers only.
+- A test scans exported traces for secrets and for content above the permitted classification.
+- If S-20 passed, generate graph diagrams in CI and fail when they differ from the committed ones.
+- Update the control matrix status for each control this work package builds.
 
 ## Added by ADR-0028
 
