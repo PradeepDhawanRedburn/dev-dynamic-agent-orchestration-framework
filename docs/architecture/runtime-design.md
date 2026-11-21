@@ -22,8 +22,17 @@ flowchart TD
   retro --> archive[archive] --> END([end])
 ```
 
-Standard and Major tiers add `delivery_plan`, a plan approval gate, fan-out to several Leads,
-staged consolidation, the Reviewer and the CTO Agent recommendation.
+Standard and Major tiers add, in this order (ADR-0026):
+
+1. `delivery_plan`: the Head of Delivery drafts workstreams and marks whether there is an AI component.
+2. `ai_advice`: the AI Specialist, only if the AI component is marked.
+3. `solution_design`: the Solution Architect drafts the design across the workstreams.
+4. The plan approval gate. The sponsor approves the plan and the design together.
+5. Fan-out to the Leads. Each receives the approved design unchanged. A Lead may ask for AI advice, within a limit.
+6. Staged consolidation, then `design_conformance` by the Solution Architect.
+7. The Reviewer, and for Major the CTO Agent recommendation.
+
+A disagreement between a Lead and the design goes to the CTO Agent for arbitration.
 
 ## Lead subgraph
 

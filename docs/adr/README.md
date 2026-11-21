@@ -14,7 +14,7 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0004](0004-evidence-by-construction.md) | Evidence by construction | Accepted |
 | [0005](0005-budget-is-a-ledger-with-reservations.md) | Budget is a ledger with reservations | Accepted |
 | [0006](0006-agents-hold-no-consequential-tools-changes-reach.md) | Agents hold no consequential tools; changes reach the estate as pull requests | Accepted |
-| [0007](0007-five-functions-and-ten-roles.md) | Five functions and ten roles | Accepted |
+| [0007](0007-five-functions-and-ten-roles.md) | Five functions and ten roles | Accepted, amended by 0026 |
 | [0008](0008-humans-decide.md) | Humans decide; the CTO Agent recommends | Accepted |
 | [0009](0009-permanent-reviewer.md) | A permanent independent Reviewer | Accepted |
 | [0010](0010-guardrail-manager-placement.md) | Guardrail Manager placement: one per Lead | Accepted |
@@ -33,5 +33,6 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0023](0023-earned-autonomy.md) | Earned autonomy | Deferred |
 | [0024](0024-retrieval-respects-the-requesting-human-s-access.md) | Retrieval respects the requesting human's access rights | Accepted |
 | [0025](0025-agent-definitions-are-versioned-files.md) | Permanent agents are defined in versioned files | Accepted |
+| [0026](0026-solution-architect-and-ai-specialist.md) | Add a Solution Architect and an AI Specialist | Accepted |
 
 New ADRs use [template.md](template.md).

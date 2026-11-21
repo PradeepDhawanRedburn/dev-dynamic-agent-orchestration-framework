@@ -13,8 +13,11 @@ Multi-domain assignments: several Leads in parallel, staged consolidation and an
 - ADR-0009
 - ADR-0018
 - ADR-0022
+- ADR-0026
 - agents/head-of-delivery.agent.md
 - agents/reviewer.agent.md
+- agents/solution-architect.agent.md
+- agents/ai-specialist.agent.md
 
 ## Tasks
 
@@ -22,13 +25,21 @@ Multi-domain assignments: several Leads in parallel, staged consolidation and an
 2. Implement Lead summaries and staged consolidation with conflict return.
 3. Implement the Reviewer on a different model deployment, and return of material findings.
 4. Implement the tier rules.
-5. Lead profiles are Data, Software, DevOps and Security only (ADR-0022).
+5. Implement the Solution Architect: `SolutionDesignDraft` attached to the plan before the approval gate, passed unchanged to every Lead, and `DesignConformance` after consolidation.
+6. Implement the AI Specialist: invoked when the plan marks an AI component or a Lead asks, with a limit on requests, and with recommended models checked against the approved list.
+7. Route a disagreement about the design to the CTO Agent.
+8. Lead profiles are Data, Software, DevOps and Security only (ADR-0022).
 
 ## Acceptance criteria
 
 - [ ] Only the Leads named in the plan are invoked (tested).
 - [ ] A contradiction between workstreams reaches the owning Leads and, if unresolved, the sponsor with both positions (tested).
 - [ ] The Reviewer's deployment differs from the producers' (tested).
+- [ ] The sponsor sees the plan and the design at one gate; no Lead starts before approval (tested).
+- [ ] Every component in the design has one owning workstream and every mandatory criterion is referenced (validated in code).
+- [ ] The AI Specialist is not invoked when no AI component is marked (tested).
+- [ ] A recommended model outside the approved list is rejected by code (tested).
+- [ ] Assignments are run with and without the design step, and the contradictions found at consolidation are recorded for both.
 - [ ] Checkpoint size stays within the bound measured in the spike.
 
 ## Out of scope

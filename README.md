@@ -16,7 +16,7 @@ machine and arrives as pull requests.
 | Open decisions | One, deferred; see [docs/requirements/open-decisions.md](docs/requirements/open-decisions.md) |
 | Governance core (`reference/`) | Written and tested: 52 passing tests on Python 3.13, Pydantic 2 |
 | LangGraph, LangChain and Foundry code (`reference/lg/`) | Draft. Never run against the real libraries. See the spike checklist |
-| Permanent agents' prompts (`agents/`) | First drafts for all ten roles. Structure checked; not yet run against a model |
+| Permanent agents' prompts (`agents/`) | First drafts for all twelve roles. Structure checked; not yet run against a model |
 | Production code (`src/`) | Not started. Begins with work package WP-00 |
 
 **Nothing in this repository has yet run on real LangGraph.** The first implementation task is
@@ -51,7 +51,7 @@ The architect does not write production code. The implementer does not change ar
 
 ## The design in one paragraph
 
-One fixed LangGraph supervisor graph runs ten permanent roles grouped into five functions:
+One fixed LangGraph supervisor graph runs twelve permanent roles grouped into five functions:
 Define, Deliver, Assure, Control and Learn. Specialists are not code. Each is a validated
 specification, optionally carrying skill packs such as Terraform or Argo CD, run by one shared
 worker and retired after its task. Every claim must cite evidence issued by the tool gateway.

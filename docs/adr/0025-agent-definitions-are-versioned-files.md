@@ -22,7 +22,7 @@ the structure and runs in CI.
 
 - Prompts are reviewed and versioned like code, and evaluated before promotion.
 - The "May" and "May not" lists document what code enforces; they do not enforce anything themselves.
-- All ten prompts are first drafts that have not been run against a model.
+- All prompts are first drafts that have not been run against a model.
 - A new role or a change of accountability needs an ADR before a file.
 
 ## Alternatives considered

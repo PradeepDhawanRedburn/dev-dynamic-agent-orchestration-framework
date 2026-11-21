@@ -1,6 +1,6 @@
 # ADR-0007: Five functions and ten roles
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [ADR-0026](0026-solution-architect-and-ai-specialist.md), which adds two roles
 - **Date:** 2026-11-21
 
 ## Context

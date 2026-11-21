@@ -9,13 +9,15 @@ files; prompts are not written in code (ADR-0025).
 > Not to be confused with `AGENTS.md` at the repository root, which is the working agreement for
 > implementers.
 
-## The ten roles
+## The twelve roles
 
 | Function | Role | File | Uses a model for |
 | --- | --- | --- | --- |
 | Define | Product Manager | [product-manager.agent.md](product-manager.agent.md) | Framing, clarifying questions, acceptance check |
 | Define | CTO Agent | [cto-agent.agent.md](cto-agent.agent.md) | Arbitration, recommendation |
 | Deliver | Head of Delivery | [head-of-delivery.agent.md](head-of-delivery.agent.md) | Plan, consolidation, deliverable |
+| Deliver | Solution Architect | [solution-architect.agent.md](solution-architect.agent.md) | Solution design, conformance check |
+| Deliver | AI Specialist | [ai-specialist.agent.md](ai-specialist.agent.md) | Advice on the AI parts of an assignment |
 | Deliver | Lead | [lead.agent.md](lead.agent.md) + a profile | Tasks, staffing requests, review |
 | Assure | Tester | [tester.agent.md](tester.agent.md) + a profile | Writing and running checks |
 | Assure | Reviewer | [reviewer.agent.md](reviewer.agent.md) | Independent challenge |
@@ -70,7 +72,7 @@ them from evidence.
 
 Some output schemas named here do not exist in the reference code yet: `ClarifyingQuestions`,
 `AcceptanceCheck`, `Arbitration`, `CheckDrafts`, `ReviewFindings`, `WorkstreamSummary`,
-`StatusNarrative`, `OverlapJudgement`, `PriorWorkMatches`, `RetrospectiveDraft`. The work package
+`StatusNarrative`, `SolutionDesignDraft`, `DesignConformance`, `AiAdvice`, `OverlapJudgement`, `PriorWorkMatches`, `RetrospectiveDraft`. The work package
 that introduces each role defines its schemas.
 
 ## Adding or changing a role

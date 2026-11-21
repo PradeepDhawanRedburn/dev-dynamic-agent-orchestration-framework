@@ -1,6 +1,6 @@
 # Architecture overview
 
-One fixed LangGraph supervisor graph runs ten permanent roles. Specialists are data: a validated
+One fixed LangGraph supervisor graph runs twelve permanent roles. Specialists are data: a validated
 specification run by one shared worker. Everything that controls cost, access and autonomy is code.
 
 Diagrams: [platform](diagrams/platform-overview.html) · [assignment flow](diagrams/assignment-flow.html) · [agent lifecycle](diagrams/agent-lifecycle.html)
@@ -17,12 +17,12 @@ More detail: [roles](roles.md) · [runtime design](runtime-design.md) · [govern
 6. **Agents cannot change your estate.** Changes arrive as pull requests that people merge (ADR-0006, ADR-0021).
 7. **Proportionate.** The size of an assignment decides how many roles and gates it uses (ADR-0017).
 
-## Five functions, ten roles
+## Five functions, twelve roles
 
 | Function | Roles | Job |
 | --- | --- | --- |
 | Define | Product Manager, CTO Agent | The right problem, and technical direction |
-| Deliver | Head of Delivery, Lead (one profile per domain), temporary specialists | The work |
+| Deliver | Head of Delivery, Solution Architect, AI Specialist, Lead (one profile per domain), temporary specialists | The design and the work |
 | Assure | Tester and Guardrail Manager (one profile each per Lead), Reviewer | Proof, challenge, and policing |
 | Control | Delivery Controller, Recruiter | Budget, schedule, priority; creating and retiring specialists |
 | Learn | Knowledge Steward | Prior answers and lessons |
@@ -31,7 +31,7 @@ Humans decide. See [roles.md](roles.md). Each role's system prompt is in [agents
 
 ## Runtime in brief
 
-- **Supervisor graph.** Intake, framing, plan, approval, fan-out to Leads, consolidation, review, final decision, retirement, archive.
+- **Supervisor graph.** Intake, framing, plan, solution design, approval, fan-out to Leads, consolidation, review, final decision, retirement, archive.
 - **Lead subgraph.** One compiled graph for every Lead profile: decompose, request specialists, reserve budget, fan out, guardrail check, evidence gate, test, review, loop or finish, retire.
 - **Worker.** Builds a LangChain agent from an `AgentSpecification` and runs it. This is the only path by which a specialist executes.
 - **Tool gateway.** Every tool call passes it: kill switch, grant, call limit, schema, execution with self-healing, clearance, evidence capture, audit.
@@ -44,7 +44,7 @@ See [runtime-design.md](runtime-design.md).
 | Tier | When | Roles | Human gates |
 | --- | --- | --- | --- |
 | Small | One domain, low budget, Internal data or lower, nothing proposed for change | Product Manager, one Lead, its Tester, specialists, code controls, Knowledge Steward intake check | Confirm framing; accept result |
-| Standard | Two or more domains, or mid-range budget | Adds Head of Delivery and Reviewer | Approve plan; accept result |
+| Standard | Two or more domains, or mid-range budget | Adds Head of Delivery, Solution Architect, Reviewer, and the AI Specialist when the plan marks an AI component | Approve plan; accept result |
 | Major | Confidential data, high budget, or any proposed change | Adds CTO Agent recommendation | Approve plan; accept result. Pull requests are opened without asking and merged by people (ADR-0021); other changes need approval |
 
 Guardrail rules run in every tier. The first release implements Small only.

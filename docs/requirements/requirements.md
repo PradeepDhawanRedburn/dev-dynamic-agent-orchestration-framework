@@ -27,6 +27,8 @@ autonomy.
 | F-11 | Every agent diagnoses and fixes routine faults (network loss, timeouts, throttling, expired credentials) by approved steps, and asks a human when those are exhausted |
 | F-12 | Humans interact through one front door: clarify, decide, be informed, steer or stop |
 | F-13 | The organisation reuses prior answers and records lessons after each assignment |
+| F-15 | A solution architect role drafts one design across workstreams before the Leads plan, and checks the result against it (ADR-0026) |
+| F-16 | A permanent AI adviser role advises on the AI parts of an assignment (ADR-0026) |
 | F-14 | Outputs other than text (code, diagrams, files) are recorded as artefacts with provenance |
 
 ## Control requirements

@@ -12,7 +12,8 @@ SECTIONS = ["Purpose", "System prompt", "Inputs", "May", "May not", "Escalates w
             "Done by code, not by this agent"]
 FUNCTIONS = {"Define", "Deliver", "Assure", "Control", "Learn"}
 EXPECTED = {"product-manager", "cto-agent", "head-of-delivery", "lead", "tester", "reviewer",
-            "guardrail-manager", "delivery-controller", "recruiter", "knowledge-steward"}
+            "guardrail-manager", "delivery-controller", "recruiter", "knowledge-steward",
+            "solution-architect", "ai-specialist"}
 PROFILED = {"lead", "tester", "guardrail-manager"}
 MAX_PROMPT_CHARS = 6000
 
@@ -63,7 +64,7 @@ def main() -> int:
     found = {f.name.removesuffix(".agent.md") for f in files}
     failed = False
     if found != EXPECTED:
-        print(f"roles differ from the ten in ADR-0007: missing {sorted(EXPECTED - found)}, "
+        print(f"roles differ from the twelve in ADR-0007 and ADR-0026: missing {sorted(EXPECTED - found)}, "
               f"unexpected {sorted(found - EXPECTED)}")
         failed = True
     policy = (ROOT / "_shared" / "organisational-policy.md").read_text()
