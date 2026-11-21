@@ -18,6 +18,7 @@ them in dependency order. Read [AGENTS.md](../../../AGENTS.md) first.
 | [WP-10](WP-10-tracing-and-evaluation.md) | Tracing and evaluation | WP-05 | Not started |
 | [WP-11](WP-11-standard-tier.md) | Standard tier | WP-06, WP-09, WP-10 | Not started |
 | [WP-12](WP-12-platform-infrastructure.md) | Platform infrastructure | WP-01 | Not started |
+| [WP-13](WP-13-reasoning-patterns.md) | Reasoning patterns: ReAct, Self-Refine and test-driven flows (final; experiments) | WP-10, WP-11 | Not started |
 
 The architect updates the Status column when a pull request is merged. Statuses: Not started,
 In progress, In review, Done, Blocked.
