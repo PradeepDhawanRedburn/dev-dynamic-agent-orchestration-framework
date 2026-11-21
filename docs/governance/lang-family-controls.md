@@ -44,15 +44,15 @@ own documentation advises pruning. The decision register and audit store are the
 | --- | --- | --- |
 | Every model and tool call is traced | LangChain and LangGraph emit a run tree per call | Verified |
 | Traces stay in Azure | `AzureAIOpenTelemetryTracer` to Application Insights (Microsoft Learn) | Verified document; behaviour in WP-01 |
-| No trace content sent to LangSmith's cloud | Either do not configure LangSmith, or set `LANGSMITH_OTEL_ONLY` so spans go only to your own collector | Verified |
-| One request followed across agents | The same identifiers on every span; see [traceability-and-decisions.md](traceability-and-decisions.md) | Design; WP-10 |
-| Sensitive content kept out of traces | Redaction before export; see section 4 | Verified options; WP-10 |
+| No trace content sent to LangSmith's cloud | LangSmith is not configured. Tested in the spike: graphs and agents then make no network call. Two things do call out even unconfigured, and are banned by tests: constructing a LangSmith client, and a test using the `langsmith` marker | Tested |
+| One request followed across agents | The Foundry tracer does not carry custom identifiers (tested in the spike). The platform adds them as span attributes itself, and every audit event stores its trace id; see [traceability-and-decisions.md](traceability-and-decisions.md) | Design; method to verify in WP-10 |
+| Sensitive content kept out of traces | The Foundry tracer records content or not, with no masking (tested). Recording is off by default and enabled per run by data classification | Tested; WP-10 |
 
 ## 4. Security
 
 | Need | Mechanism | Status |
 | --- | --- | --- |
-| Workflow state encrypted at rest beyond disk encryption | LangGraph `EncryptedSerializer`, AES key from `LANGGRAPH_AES_KEY`; the key is held in Key Vault | Verified |
+| Workflow state encrypted at rest beyond disk encryption | LangGraph `EncryptedSerializer`, AES key from `LANGGRAPH_AES_KEY`; the key is held in Key Vault | Tested in the spike: works, but strings, numbers and booleans held directly in state stay unencrypted. It is defence in depth only. The control is that state holds identifiers and statuses, never content (ADR-0033) |
 | No unsafe deserialisation | Keep the default serialiser; **do not** enable `pickle_fallback` | Verified option exists; rule for implementers |
 | Trace content hidden | With LangSmith: `LANGSMITH_HIDE_INPUTS`, `LANGSMITH_HIDE_OUTPUTS`, `LANGSMITH_HIDE_METADATA`, or pattern-based masking with `create_anonymizer`. With OpenTelemetry only: redaction in the collector | Verified for LangSmith; collector redaction to verify |
 | Agents cannot reach systems | Not a LangChain feature. The tool gateway, network policy and the absence of credentials (ADR-0006) | Design; WP-03, WP-12 |
@@ -68,7 +68,7 @@ Three layers. The first is the control; the other two reduce what reaches it.
 | 2. LangChain middleware on every specialist | See the table below | Code |
 | 3. Model provider filters | Microsoft Foundry content filters and prompt-attack detection | Provider; to verify what is available and configurable |
 
-LangChain middleware, all *Verified* to exist under `langchain.agents.middleware`:
+LangChain middleware. All eight were tested in the spike against LangChain 1.5.2 and compose in one agent. Order, outermost first: budget metering, call limits, PII, model fallback, model retry, model refusal, tool retry, tool error (ADR-0033).
 
 | Middleware | Use here |
 | --- | --- |
@@ -76,10 +76,12 @@ LangChain middleware, all *Verified* to exist under `langchain.agents.middleware
 | `ToolCallLimitMiddleware` | Hard ceiling on tool calls, overall and per tool |
 | `ModelRetryMiddleware`, `ToolRetryMiddleware` | Bounded retries; the platform's self-healing routine sits above them (ADR-0015) |
 | `ModelFallbackMiddleware` | Switch to an approved alternate deployment only |
-| `ToolErrorMiddleware` | A tool failure becomes a message, not a crash. Needs a recent LangChain version |
+| `ToolErrorMiddleware` | A tool failure becomes a message only if its handler returns content; the platform's handler always does |
 | `ModelRefusalMiddleware` | A model refusal is raised as an error, so it is never read as an answer. Needs a recent LangChain version |
-| `PIIMiddleware` | Redact, mask, hash or block personal data in messages. Built-in types are few (email, card number, IP address, MAC address, URL); names and account numbers need custom detectors |
+| `PIIMiddleware` | Redact, mask, hash or block personal data in messages. Built-in types are few; custom detectors work (tested). It scans input only unless told otherwise, so input, output and tool-result settings are always stated explicitly |
 | Custom `AgentMiddleware` | Budget metering, and checks before and after a specialist runs |
+
+**The rule is the allow-list above:** a built specialist may contain only those classes, checked by class name. The list below explains what is excluded and why. `FilesystemMiddleware` and `SubAgentMiddleware` do not exist in the pinned LangChain; they belong to another package and are listed so the check catches them if it is ever installed.
 
 Middleware that must **not** be enabled, because each conflicts with an accepted decision:
 
@@ -93,7 +95,7 @@ Middleware that must **not** be enabled, because each conflicts with an accepted
 | `HumanInTheLoopMiddleware` | Pauses inside an agent; here every pause is raised by the supervisor (ADR-0016) |
 | `LLMToolEmulator` | Test use only; never in a deployed environment |
 
-WP-03 must test that none of these is present in a built specialist.
+WP-03 tests the allow-list.
 
 ## 6. Evaluation
 

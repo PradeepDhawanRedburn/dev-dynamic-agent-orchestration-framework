@@ -1,6 +1,6 @@
 # ADR-0029: How the LangChain family of tools is used
 
-- **Status:** Proposed
+- **Status:** Proposed; points 3 and 6 amended by [ADR-0033](0033-decisions-from-the-architecture-spike.md) after the spike
 - **Date:** 2026-11-21
 
 ## Context

@@ -78,6 +78,8 @@ the guardrail gate inside the subgraph, and the Tester does not yet write checks
 | Task | The `Send` payload | One task, one specification, reservation id, revision comments |
 | Agent | Inside the worker's agent loop | Messages and notes; discarded when the node returns |
 
+Rules from the spike (ADR-0033): state holds identifiers, statuses and counters only, as JSON primitives, lists and dicts, with no free text and no custom classes; every subgraph under `Send` declares an `output_schema`; every node is async and every `Send` target has an error handler; durability mode `exit` is never used.
+
 Rules: values are JSON-serialisable and re-validated with Pydantic at node boundaries. Keys
 written by parallel branches have reducers. A subgraph returns only reducer keys to its parent.
 State holds references; bodies are read from the stores.

@@ -42,7 +42,11 @@ Stated so that no reviewer has to find them.
 | --- | --- | --- |
 | No model-based watcher over the permanent agents | Owner's decision (ADR-0010) | Rule engine and the security owner cover them; revisit after the proof of concept |
 | Pull requests are opened without prior approval | Owner's decision (ADR-0021) | Six mandatory conditions; the security owner should review before any repository is allow-listed |
-| The LangSmith client library is present although LangSmith is not adopted | It is a dependency of LangChain | Left unconfigured, tested (WP-01); its hosts blocked at the egress proxy (WP-12); S-24 confirms default behaviour |
+| The LangSmith client library is present although LangSmith is not adopted | It is a dependency of LangChain | Tested in WP-01: silent when unconfigured, except that constructing its client or using its test marker calls out. Both are banned by tests; its hosts are blocked at the egress proxy (WP-12) |
+| Checkpoint encryption does not cover simple values held directly in state | Library behaviour, found in WP-01 | State holds identifiers and statuses only, enforced by a test; database encryption covers the rest (ADR-0033) |
+| Trace content is recorded fully or not at all | Tracer behaviour, found in WP-01 | Off by default; on per run by classification; masking later in the collector (H-19) |
+| The PostgreSQL driver is LGPL-3.0 | Required by the LangGraph checkpointer | For Legal to assess (H-18, issue 7) |
+| One request reached LangSmith's public endpoint during the spike | The architect's reference draft created a client on import | No key or data was sent and the call failed. The file is deleted and the pattern is banned by test (issue 8) |
 | Web search sends queries outside the network | Inherent to research | Egress allow-list; an approved service (H-10); queries must not contain confidential content, enforced by classification |
 | The model provider processes prompts | Inherent to using a model | Foundry deployments in the tenant; terms to be confirmed by Legal |
 | A person can release work over a failed check or a review finding | Owner's requirement (ADR-0032) | Always recorded with a reason and shown on the deliverable; override counts reported |

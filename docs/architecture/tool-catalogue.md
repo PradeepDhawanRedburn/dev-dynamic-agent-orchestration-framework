@@ -26,7 +26,7 @@ implementer to choose and verify against current documentation.
 | `ledger_read` | Read budget, reservations and spend | Project id | Figures per workstream and task | Budget ledger | WP-02 | Ceilings: H-08 |
 | `plan_read` | Read the approved plan, schedule and risks | Project id | Workstreams, dependencies, dates, risks | Workflow state | WP-05 | None |
 | `registry_read` | Read live and recent specialists and their requests | Project id | Specialist records without working memory | Agent registry | WP-02 | None |
-| `model_catalogue_read` | List the models approved for use, with limits | Optional purpose | Model key, purpose, highest data classification, cost band, status | Model catalogue (configuration) | WP-03 | The catalogue itself: H-03, H-14 |
+| `model_catalogue_read` | List the models approved for use, with limits | Optional purpose | Model key, deployment, API to use, API version, reasoning effort, purpose, highest data classification, cost band, status (ADR-0033) | Model catalogue (configuration) | WP-03 | The catalogue itself: H-03, H-14 |
 
 Scope limits enforced by the gateway, not by the prompt:
 

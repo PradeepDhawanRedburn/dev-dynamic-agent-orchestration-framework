@@ -25,6 +25,8 @@ The first-release platform, reproducible from Git.
 
 - [ ] A fresh environment is created from the repository with no manual step.
 - [ ] No data service has public network access (verified by a policy check).
+- [ ] The spike rows left untested are run and recorded: PostgreSQL with Entra authentication (S-08) and Foundry with managed identity (S-12).
+- [ ] The egress proxy blocks LangSmith's hosts (tested).
 - [ ] The identity used by workflows on pull requests is read-only; write access exists only behind a protected environment after merge (ADR-0021).
 - [ ] The sandbox cannot resolve or reach any address (tested).
 

@@ -12,6 +12,7 @@ Permanent agents load their prompts from `agents/`, and a specialist can be buil
 - ADR-0002
 - ADR-0006
 - ADR-0025
+- ADR-0033
 - ADR-0029 (Proposed; confirm before applying the middleware lists)
 - docs/governance/lang-family-controls.md
 - ADR-0027 (Proposed; confirm it is accepted before task 5)
@@ -31,7 +32,9 @@ Permanent agents load their prompts from `agents/`, and a specialist can be buil
 
 ## Acceptance criteria
 
-- [ ] A built specialist contains exactly the allowed middleware and none on the deny-list in `docs/governance/lang-family-controls.md` (tested).
+- [ ] A built specialist contains only allow-listed middleware, by class name, in the order in ADR-0033 (tested).
+- [ ] The model catalogue carries the fields in ADR-0033 point 9, and the API and reasoning effort used for a call come from it (tested).
+- [ ] A tool failure and a content-filter block each produce the outcome in ADR-0033, with no retry of a blocked prompt (tested).
 - [ ] Loader output for all twelve roles and five profiles is covered by golden-file tests.
 - [ ] A skill marked `needs-content` is not in the assembled prompt, and the run records it as skipped (tested).
 - [ ] A specialist run with a fake model returns a valid `AgentResult`; a result citing an unknown evidence id is rejected.
