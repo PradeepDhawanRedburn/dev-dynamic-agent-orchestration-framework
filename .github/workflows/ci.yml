@@ -1,14 +1,16 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   checks:
@@ -37,8 +39,35 @@ jobs:
       - name: mypy
         run: uv run --locked mypy
 
-      - name: pytest
-        run: uv run --locked pytest
+      - name: Unit tests
+        run: uv run --locked pytest --ignore=tests/spike
 
       - name: Agent definitions
         run: python3 scripts/check_agents.py
+
+      - name: Dependency licence list is current
+        run: |
+          uv run --locked python scripts/generate_dependency_licences.py
+          git diff --exit-code -- docs/governance/dependency-licences.md
+
+  # Needs no cloud credentials. Tests marked `foundry` are skipped, and the skip is listed in the
+  # summary. PostgreSQL runs as a throwaway container started by the tests themselves.
+  spike:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          version: "0.8.23"
+          python-version: "3.13"
+          enable-cache: false
+
+      - name: Install locked dependencies
+        run: uv sync --locked
+
+      - name: Spike tests
+        run: uv run --locked pytest tests/spike

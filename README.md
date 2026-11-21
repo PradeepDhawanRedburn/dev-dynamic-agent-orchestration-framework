@@ -70,13 +70,32 @@ uv sync --locked                 # create .venv from the lock file
 uv run ruff check src tests
 uv run ruff format --check src tests
 uv run mypy
-uv run pytest
+uv run pytest --ignore=tests/spike
 python3 scripts/check_agents.py
+uv run pytest tests/spike        # architecture spike; needs Docker for PostgreSQL
 ```
 
+The application needs a PostgreSQL on every developer machine, not only for tests. Start one with a single
+command (needs Docker; production uses Azure Database for PostgreSQL):
+
+```bash
+python scripts/dev_db.py up      # creates a git-ignored .env with a random password, starts PostgreSQL, waits until healthy
+python scripts/dev_db.py down    # stop, keep the data
+python scripts/dev_db.py reset   # stop and delete the data
+```
+
+It listens on `127.0.0.1:5432` only (change `POSTGRES_PORT` in `.env` if the port is taken). The application reads
+`DATABASE_URL` from `.env`; `.env.example` shows the variables and `.env` is never committed. Put your Foundry settings
+(`AZURE_OPENAI_*`, `AZURE_MODEL_*`) in the same `.env`; the spike tests read the `AZURE_*` ones from it.
+
+The spike tests start their own throwaway PostgreSQL container by default. To run them on the local database
+instead, set `SPIKE_POSTGRES_DSN` to the value of `DATABASE_URL`; they create their own databases on it. Tests marked `foundry`
+are skipped, with the reason shown, unless `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` are set in your
+shell; never put them in a file in the repository. No LangSmith or LangChain tracing variable may be set.
+
 Behind a TLS-inspecting proxy, pass `--native-tls` to uv (or set `UV_NATIVE_TLS=1`) so it trusts the
-operating system's certificate store. After changing `uv.lock`, regenerate the licence list with
-`uv run --locked python scripts/generate_dependency_licences.py`.
+operating system's certificate store. After changing `uv.lock`, regenerate the licence list on Linux (CI
+checks it is current): `uv run --locked python scripts/generate_dependency_licences.py`.
 
 ## The design in one paragraph
 

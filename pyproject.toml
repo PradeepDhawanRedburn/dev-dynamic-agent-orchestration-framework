@@ -9,6 +9,8 @@ dependencies = [
     "langgraph==1.2.24",
     "langchain==1.5.2",
     "langchain-azure-ai==1.2.3",
+    "langgraph-checkpoint-postgres==3.2.1",
+    "psycopg[binary]==3.3.9",
 ]
 
 [dependency-groups]
@@ -17,6 +19,9 @@ dev = [
     "ruff==0.17.6",
     "mypy==2.4.1",
     "pip-licenses==5.5.5",
+    "pycryptodome==4.5.0",
+    "langchain-azure-ai[opentelemetry]==1.2.3",
+    "opentelemetry-sdk==1.45.2",
 ]
 
 [build-system]
@@ -29,6 +34,10 @@ packages = ["src/orchestrator"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+markers = [
+    "foundry: needs a Microsoft Foundry deployment; skipped, visibly, when it is not configured",
+    "postgres: needs PostgreSQL; uses a local container or SPIKE_POSTGRES_DSN",
+]
 
 [tool.ruff]
 line-length = 100
@@ -43,3 +52,9 @@ python_version = "3.13"
 strict = true
 files = ["src", "tests"]
 mypy_path = "src"
+
+# The WP-01 spike tests probe library behaviour with deliberately loose types and drive
+# untyped reference code. They are not production code; src/ and tests/unit stay strict.
+[[tool.mypy.overrides]]
+module = ["tests.spike.*"]
+ignore_errors = true
