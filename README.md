@@ -61,6 +61,23 @@ the architecture spike, [WP-01](docs/plan/work-packages/WP-01-architecture-spike
 
 The architect does not write production code. The implementer does not change architecture.
 
+## Development setup
+
+Python 3.12 or later and [uv](https://docs.astral.sh/uv/). Dependencies are pinned in `pyproject.toml` and locked in `uv.lock`.
+
+```bash
+uv sync --locked                 # create .venv from the lock file
+uv run ruff check src tests
+uv run ruff format --check src tests
+uv run mypy
+uv run pytest
+python3 scripts/check_agents.py
+```
+
+Behind a TLS-inspecting proxy, pass `--native-tls` to uv (or set `UV_NATIVE_TLS=1`) so it trusts the
+operating system's certificate store. After changing `uv.lock`, regenerate the licence list with
+`uv run --locked python scripts/generate_dependency_licences.py`.
+
 ## The design in one paragraph
 
 One fixed LangGraph supervisor graph runs twelve permanent roles grouped into five functions:
