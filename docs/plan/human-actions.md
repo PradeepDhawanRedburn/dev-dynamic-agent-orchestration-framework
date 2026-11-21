@@ -29,6 +29,7 @@ access. Each has an id cited by the tool catalogue, the skills and the work pack
 | H-20 | Review the security design and threat model | IT security; information security | Review `docs/architecture/governance-and-security.md`, `azure-foundry.md` and the control matrix. Raise findings as issues labelled `risk`. Schedule penetration and red-team testing before production. | Security is self-assessed by the architect only | WP-12; Phase 5 |
 | H-21 | Classify the system under your AI governance framework | AI governance | Assess risk level, required oversight and documentation. Confirm the human gates are sufficient. Agree evaluation thresholds with the Leads' human counterparts. | No AI governance approval | Phase 5 |
 | H-22 | Decide ADR-0029 | Repository owner | Accept or change the proposed use of the LangChain family. | Implementers lack the middleware lists and tracing approach | WP-03, WP-10 |
+| H-23 | Protect the `main` branch | Repository owner | In the repository settings: require a pull request before merging, require the CI check to pass, and block force pushes. Note that this also stops the architect pushing documents directly; either exempt that or have the architect use pull requests too. | Anyone with access can push unreviewed changes to a public repository | Now |
 
 ## How to hand something over
 

@@ -31,6 +31,7 @@ Written against LangGraph 1.2.24 documentation, read 21 November 2026.
 | S-21 | The Foundry tracer carries custom metadata on every span, and content can be hidden or masked by classification | Not run | Use OpenTelemetry directly with redaction in the collector |
 | S-22 | `get_state_history` returns enough to link a human decision to the state it was made on | Read, not run | Store the needed state reference in the decision register directly |
 | S-23 | What content filters and prompt-attack detection Foundry applies to the chosen deployments, and what is configurable | Not read | Rely on platform controls only; record the gap |
+| S-24 | With no LangSmith variables set, the installed `langsmith` package sends nothing over the network, and its pytest plugin makes no calls | It arrives as a dependency of `langchain`; default behaviour not read | Block its hosts at the egress proxy and disable the plugin; record in ADR-0029 |
 
 ## Also in the spike
 

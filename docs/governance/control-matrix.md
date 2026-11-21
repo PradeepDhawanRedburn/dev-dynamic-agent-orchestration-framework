@@ -40,6 +40,7 @@ Stated so that no reviewer has to find them.
 | --- | --- | --- |
 | No model-based watcher over the permanent agents | Owner's decision (ADR-0010) | Rule engine and the security owner cover them; revisit after the proof of concept |
 | Pull requests are opened without prior approval | Owner's decision (ADR-0021) | Six mandatory conditions; the security owner should review before any repository is allow-listed |
+| The LangSmith client library is present although LangSmith is not adopted | It is a dependency of LangChain | Left unconfigured, tested (WP-01); its hosts blocked at the egress proxy (WP-12); S-24 confirms default behaviour |
 | Web search sends queries outside the network | Inherent to research | Egress allow-list; an approved service (H-10); queries must not contain confidential content, enforced by classification |
 | The model provider processes prompts | Inherent to using a model | Foundry deployments in the tenant; terms to be confirmed by Legal |
 | Prompts and skills are unevaluated drafts | No evaluation data yet (H-13) | Nothing is promoted without passing the evaluation gate |

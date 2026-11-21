@@ -25,7 +25,7 @@ design, build, test, review and acceptance. See
 | Requirements and architecture | Approved through design Revision 2, plus the decisions recorded in the ADRs |
 | Open decisions | One deferred, one proposed; see [docs/requirements/open-decisions.md](docs/requirements/open-decisions.md) |
 | Implementer prompts | [docs/plan/implementer-prompt.md](docs/plan/implementer-prompt.md) |
-| Needed from people | Twenty-two actions; see [docs/plan/human-actions.md](docs/plan/human-actions.md) |
+| Needed from people | Twenty-three actions; see [docs/plan/human-actions.md](docs/plan/human-actions.md) |
 | Governance core (`reference/`) | Written and tested: 52 passing tests on Python 3.13, Pydantic 2 |
 | LangGraph, LangChain and Foundry code (`reference/lg/`) | Draft. Never run against the real libraries. See the spike checklist |
 | Permanent agents' prompts (`agents/`) | First drafts for all twelve roles. Structure checked; not yet run against a model |

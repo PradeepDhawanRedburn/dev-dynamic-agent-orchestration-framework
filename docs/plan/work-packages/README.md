@@ -5,7 +5,7 @@ them in dependency order. Read [AGENTS.md](../../../AGENTS.md) first.
 
 | Work package | Title | Depends on | Status |
 | --- | --- | --- | --- |
-| [WP-00](WP-00-bootstrap.md) | Bootstrap the implementation project | None | Not started |
+| [WP-00](WP-00-bootstrap.md) | Bootstrap the implementation project | None | In review; architect approved pull request 1 |
 | [WP-01](WP-01-architecture-spike.md) | Architecture spike | WP-00 | Not started |
 | [WP-02](WP-02-governance-core.md) | Governance core on PostgreSQL | WP-01 | Not started |
 | [WP-03](WP-03-agent-definitions-and-worker.md) | Agent definitions, worker runtime and tool gateway | WP-02 | Not started |

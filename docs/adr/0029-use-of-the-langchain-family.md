@@ -25,6 +25,7 @@ LangSmith Cloud has no Azure or UK region; self-hosting is an Enterprise add-on.
 
 - Without LangSmith, evaluation and human review tooling must come from Foundry or be built. WP-10 carries that.
 - Points 2, 6 and 7 add tests and spike items.
+- The `langsmith` client library is installed regardless, as a dependency of `langchain` (found in WP-00). It must stay unconfigured: no tracing or endpoint variables, verified by a test, and its hosts are not on the egress allow-list. Spike item S-24 confirms it is silent by default.
 - Six functions have named actions (H-17 to H-21, and earlier ones).
 
 ## Alternatives considered

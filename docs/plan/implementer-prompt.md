@@ -46,8 +46,9 @@ Run this only after WP-00 is merged and Microsoft Foundry is provisioned (action
 ```text
 Do work package WP-01 (docs/plan/work-packages/WP-01-architecture-spike.md).
 
-This is a spike: its product is knowledge, not production code. For every row in
-docs/plan/spike-checklist.md (S-01 onwards):
+This is a spike: its product is knowledge, not production code. Also do the items under "Carried over from the review of WP-00" in that file.
+
+For every row in docs/plan/spike-checklist.md (S-01 onwards):
 - write the smallest runnable test that proves or disproves the assumption against the pinned versions;
 - record in docs/plan/spike-findings.md: the versions, what you ran, what happened, and pass, fail or could not test;
 - if an assumption is false, do not redesign. Record the finding, open an issue labelled spike-finding, and move to the next row.

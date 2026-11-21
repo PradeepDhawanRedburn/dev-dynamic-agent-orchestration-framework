@@ -10,7 +10,7 @@
 
 ## Needed from the owner, though not architecture decisions
 
-Twenty-two actions, each with an owner role and how to do it: [human-actions.md](../plan/human-actions.md).
+Twenty-three actions, each with an owner role and how to do it: [human-actions.md](../plan/human-actions.md).
 
 ## Decided on 21 November 2026
 

@@ -1,6 +1,6 @@
 # WP-00: Bootstrap the implementation project
 
-- **Status:** Not started
+- **Status:** In review; architect approved pull request 1 on 21 November 2026. Python 3.13 only was accepted in place of 3.12 or later
 - **Depends on:** None
 
 ## Goal
