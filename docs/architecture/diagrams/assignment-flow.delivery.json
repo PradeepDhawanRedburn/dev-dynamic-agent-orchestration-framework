@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "receiptId": "b6c31a44-ac84-48aa-a473-8cb8db2c4913",
+  "receiptId": "e03b78d8-87da-4ea7-a321-687cc03acd57",
   "status": "current",
   "command": "deliver",
   "type": "workflow",
   "input": "/home/claude/repo/docs/architecture/diagrams/src/assignment-flow.workflow.json",
   "output": "/home/claude/repo/docs/architecture/diagrams/assignment-flow.html",
   "specification": {
-    "sha256": "f03de1d0f33d8ee7166e346b1717b2318572cfd6e2ead601266d46043d557095",
-    "bytes": 5962
+    "sha256": "2d098f2c3a42a404e00c1f82436b9611aca4529545f9778fd49746af88125355",
+    "bytes": 6044
   },
   "artifact": {
-    "sha256": "7fc66b30c41f900f3dbe4df1a6d767c8851145da7ae68bb168e3847b206e2c85",
-    "bytes": 860923
+    "sha256": "b466f60c3c0329de9fbfb4b6debecd8921ad6ace893e943b0fe5a3806f7a569d",
+    "bytes": 860999
   }
 }

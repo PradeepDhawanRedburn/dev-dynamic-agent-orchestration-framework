@@ -79,7 +79,7 @@
    "col": 0,
    "type": "frontend",
    "label": "Product Manager",
-   "sublabel": "frame and clarify"
+   "sublabel": "discovery stage"
   },
   {
    "id": "cto",
@@ -198,7 +198,7 @@
   {
    "from": "pm",
    "to": "hod",
-   "label": "framed request",
+   "label": "baseline",
    "variant": "emphasis"
   },
   {
@@ -311,11 +311,12 @@
    "items": [
     "Recruiter provisions and retires every specialist",
     "Tester also runs its checks on each result before the Lead accepts",
-    "Revision and re-staffing loops are not drawn",
     "Architect also checks the consolidated result against the design",
     "AI Specialist is skipped when there is no AI component",
     "Knowledge Steward checks for prior answers before framing; its link is not drawn",
-    "Controller is the Delivery Controller"
+    "Controller is the Delivery Controller",
+    "Discovery (options, consultation, requirement approval) is in discovery-stage.html",
+    "Revision and re-staffing loops are not drawn"
    ]
   }
  ]

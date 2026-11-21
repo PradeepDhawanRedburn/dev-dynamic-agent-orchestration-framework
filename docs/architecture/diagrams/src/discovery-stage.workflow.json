@@ -1,0 +1,217 @@
+{
+ "schema_version": 2,
+ "diagram_type": "workflow",
+ "meta": {
+  "title": "From request to approved requirement: the discovery stage",
+  "output": "docs/architecture/diagrams/discovery-stage.html",
+  "quality_profile": "showcase"
+ },
+ "lanes": [
+  {
+   "id": "humans",
+   "label": "Humans decide"
+  },
+  {
+   "id": "define",
+   "label": "Define"
+  },
+  {
+   "id": "deliver",
+   "label": "Deliver"
+  },
+  {
+   "id": "control",
+   "label": "Control and Learn"
+  }
+ ],
+ "mainPath": [
+  "sponsor",
+  "options",
+  "choose",
+  "draft",
+  "answer",
+  "consult",
+  "ready",
+  "approve",
+  "delivery"
+ ],
+ "nodes": [
+  {
+   "id": "sponsor",
+   "lane": "humans",
+   "col": 0,
+   "type": "external",
+   "label": "Sponsor",
+   "sublabel": "states the need"
+  },
+  {
+   "id": "choose",
+   "lane": "humans",
+   "col": 1,
+   "type": "security",
+   "label": "Choose option",
+   "sublabel": "human gate"
+  },
+  {
+   "id": "answer",
+   "lane": "humans",
+   "col": 2,
+   "type": "security",
+   "label": "Answer questions",
+   "sublabel": "mandatory block"
+  },
+  {
+   "id": "approve",
+   "lane": "humans",
+   "col": 5,
+   "type": "security",
+   "label": "Approve requirement",
+   "sublabel": "human gate"
+  },
+  {
+   "id": "options",
+   "lane": "define",
+   "col": 0,
+   "type": "frontend",
+   "label": "Product Manager",
+   "sublabel": "ideation: options"
+  },
+  {
+   "id": "draft",
+   "lane": "define",
+   "col": 2,
+   "type": "frontend",
+   "label": "Requirement draft",
+   "sublabel": "refinement"
+  },
+  {
+   "id": "consult",
+   "lane": "deliver",
+   "col": 3,
+   "type": "backend",
+   "label": "Consulted roles",
+   "sublabel": "Leads, Architect, AI"
+  },
+  {
+   "id": "delivery",
+   "lane": "deliver",
+   "col": 5,
+   "type": "backend",
+   "label": "Plan and build",
+   "sublabel": "delivery",
+   "tag": "needs baseline"
+  },
+  {
+   "id": "steward",
+   "lane": "control",
+   "col": 0,
+   "type": "database",
+   "label": "Knowledge Steward",
+   "sublabel": "prior answers"
+  },
+  {
+   "id": "cost",
+   "lane": "control",
+   "col": 3,
+   "type": "messagebus",
+   "label": "Controller",
+   "sublabel": "cost and time range"
+  },
+  {
+   "id": "ready",
+   "lane": "control",
+   "col": 4,
+   "type": "messagebus",
+   "label": "Definition of Ready",
+   "sublabel": "checked by code"
+  }
+ ],
+ "edges": [
+  {
+   "from": "sponsor",
+   "to": "options",
+   "label": "request"
+  },
+  {
+   "from": "options",
+   "to": "choose",
+   "label": "2 to 3 options",
+   "variant": "emphasis"
+  },
+  {
+   "from": "choose",
+   "to": "draft",
+   "label": "chosen"
+  },
+  {
+   "from": "draft",
+   "to": "answer",
+   "label": "questions"
+  },
+  {
+   "from": "answer",
+   "to": "consult",
+   "label": "answers"
+  },
+  {
+   "from": "consult",
+   "to": "ready",
+   "label": "notes"
+  },
+  {
+   "from": "ready",
+   "to": "approve",
+   "label": "ready",
+   "variant": "emphasis"
+  },
+  {
+   "from": "approve",
+   "to": "delivery",
+   "label": "baseline v1",
+   "variant": "emphasis"
+  },
+  {
+   "from": "steward",
+   "to": "options",
+   "label": "reuse",
+   "variant": "dashed",
+   "role": "branch"
+  },
+  {
+   "from": "cost",
+   "to": "ready",
+   "label": "range",
+   "variant": "dashed",
+   "role": "branch"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "title": "What this shows",
+   "items": [
+    "Nothing is planned, designed or built before a human approves the requirement",
+    "The approved requirement is a versioned baseline",
+    "A later change is a change request and a new version"
+   ]
+  },
+  {
+   "dot": "amber",
+   "title": "By size tier",
+   "items": [
+    "Small: one reading, one Lead consulted",
+    "Standard and Major: full options, Leads, Solution Architect, AI Specialist if relevant",
+    "Major adds the human security owner"
+   ]
+  },
+  {
+   "dot": "rose",
+   "title": "Simplified here",
+   "items": [
+    "Not ready, or changes asked at approval, returns to the requirement draft",
+    "At most three refinement rounds",
+    "Controller is the Delivery Controller; its figures are computed by code"
+   ]
+  }
+ ]
+}

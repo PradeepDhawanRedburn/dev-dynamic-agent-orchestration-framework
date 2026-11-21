@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "e0fa5813-06d3-4932-a58f-e201408971fd",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "/home/claude/repo/docs/architecture/diagrams/src/discovery-stage.workflow.json",
+  "output": "/home/claude/repo/docs/architecture/diagrams/discovery-stage.html",
+  "specification": {
+    "sha256": "bab43660f09fc89007bcfeb2d19d5b5219e7653435b807ee195397d5ffe19663",
+    "bytes": 3998
+  },
+  "artifact": {
+    "sha256": "9b6804cf364e0763cec19a1a1923c411f2e40840a1450523287084512445231a",
+    "bytes": 847229
+  }
+}
