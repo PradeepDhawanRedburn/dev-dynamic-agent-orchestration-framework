@@ -1,0 +1,21 @@
+# Local development PostgreSQL only. Production uses Azure Database for PostgreSQL (ADR-0003, ADR-0014).
+# The password is never stored here: export POSTGRES_PASSWORD in your shell before `docker compose up`.
+services:
+  postgres:
+    image: postgres:17-alpine@sha256:526f86d93c6ea08fd3f1fe5605650cacc781b2c6013169a0ad8f42c7d3d84f32
+    environment:
+      POSTGRES_USER: orchestrator
+      POSTGRES_DB: orchestrator
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?export POSTGRES_PASSWORD before starting}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - orchestrator-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orchestrator -d orchestrator"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  orchestrator-pgdata:

@@ -75,7 +75,17 @@ python3 scripts/check_agents.py
 uv run pytest tests/spike        # architecture spike; needs Docker for PostgreSQL
 ```
 
-The spike tests start a throwaway PostgreSQL container (or use `SPIKE_POSTGRES_DSN`). Tests marked `foundry`
+For a local PostgreSQL that persists between runs (production uses Azure Database for PostgreSQL):
+
+```bash
+export POSTGRES_PASSWORD=...     # choose one; it is never stored in the repository
+docker compose up -d --wait
+# DSN: postgresql://orchestrator:$POSTGRES_PASSWORD@127.0.0.1:5432/orchestrator
+docker compose down              # add -v to delete the data
+```
+
+The spike tests start a throwaway PostgreSQL container by default. To use the compose database instead, set
+`SPIKE_POSTGRES_DSN` to its DSN; the tests create and use their own databases on it. Tests marked `foundry`
 are skipped, with the reason shown, unless `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` are set in your
 shell; never put them in a file in the repository. No LangSmith or LangChain tracing variable may be set.
 
