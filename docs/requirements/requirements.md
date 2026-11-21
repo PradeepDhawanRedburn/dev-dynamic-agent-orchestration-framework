@@ -5,7 +5,7 @@ an id that ADRs and work packages cite.
 
 ## Goal
 
-A production-grade platform that takes any complex business or technology requirement, breaks it
+A production-grade platform that takes any complex technology requirement, breaks it
 into workstreams, staffs each with temporary specialist agents, validates and consolidates their
 work, and returns an evidence-backed result to a human, under enforced limits on cost, access and
 autonomy.
@@ -35,7 +35,7 @@ autonomy.
 | --- | --- |
 | C-01 | Routing, permissions, budgets, approvals, retries and lifecycle are deterministic code. Models are used only for interpretation, planning, research, synthesis and judgement |
 | C-02 | No agent can change anything outside the platform. Proposed changes reach the estate as pull requests that people merge |
-| C-03 | Humans hold every binding decision: plan approval, budget or deadline overrun, any proposed change, resuming or terminating a suspended agent, and final acceptance |
+| C-03 | Humans hold every binding decision: plan approval, budget or deadline overrun, merging any pull request, any other proposed change, resuming or terminating a suspended agent, and final acceptance. The platform may open a pull request without asking first (ADR-0021) |
 | C-04 | Every agent and tool action is recorded in an audit store that does not depend on the tracing tool |
 | C-05 | Budgets are enforced before, during and after work. A task cannot overspend its workstream or project |
 | C-06 | An agent behaving outside what was approved is suspended automatically. Suspension is reversible; only a human resumes or terminates |
@@ -56,6 +56,7 @@ autonomy.
 
 ## Out of scope
 
+- Business assignments, for now (ADR-0022). Technology assignments only.
 - Applying any change to an environment, protected branch or system of record.
 - Decisions about individual people or customers.
 - Advice the firm treats as regulated, without a qualified human author.

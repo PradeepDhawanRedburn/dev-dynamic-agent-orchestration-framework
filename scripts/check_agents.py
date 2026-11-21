@@ -13,7 +13,7 @@ SECTIONS = ["Purpose", "System prompt", "Inputs", "May", "May not", "Escalates w
 FUNCTIONS = {"Define", "Deliver", "Assure", "Control", "Learn"}
 EXPECTED = {"product-manager", "cto-agent", "head-of-delivery", "lead", "tester", "reviewer",
             "guardrail-manager", "delivery-controller", "recruiter", "knowledge-steward"}
-PROFILED = {"lead", "tester"}
+PROFILED = {"lead", "tester", "guardrail-manager"}
 MAX_PROMPT_CHARS = 6000
 
 
@@ -46,7 +46,7 @@ def check(path: pathlib.Path) -> list[str]:
     if not prompt.startswith("{{organisational-policy}}"):
         errors.append("the prompt must start with {{organisational-policy}}")
     if ("{{domain-profile}}" in prompt) != (meta.get("name") in PROFILED):
-        errors.append("{{domain-profile}} belongs in lead and tester, and only there")
+        errors.append("{{domain-profile}} belongs in lead, tester and guardrail-manager, and only there")
     if "\nROLE\n" not in prompt:
         errors.append("the prompt needs a ROLE section")
     named = set(re.findall(r"\(output: (\w+)\)", prompt))

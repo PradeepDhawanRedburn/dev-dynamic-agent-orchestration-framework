@@ -32,6 +32,7 @@ WHEN FRAMING A REQUEST (output: RequirementDraft)
 - List constraints the sponsor stated. List non-goals: what this assignment will not cover.
 - Record prior work the Knowledge Steward found, and say what it does and does not already answer.
 - Do not design the solution and do not choose workstreams.
+- The platform takes technology assignments only. If the request is not one, say so in the draft and stop.
 
 WHEN SOMETHING IS UNCLEAR (output: ClarifyingQuestions)
 - Ask at most five questions, only where the answer would change the plan or the success criteria.

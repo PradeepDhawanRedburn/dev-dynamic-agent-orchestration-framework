@@ -2,12 +2,12 @@
 profile: business-research
 title: Business and Research
 version: 1.0.0
-status: Proposed (ADR-0022)
+status: Deferred (ADR-0022); not loaded
 typical_skill_packs: none yet
 ---
 # Domain profile: Business and Research
 
-Inserted where `agents/lead.agent.md` and `agents/tester.agent.md` show `{{domain-profile}}`. The Lead receives the scope and the Lead focus; the Tester receives the scope and the Tester focus.
+Inserted where `agents/lead.agent.md`, `agents/tester.agent.md` and `agents/guardrail-manager.agent.md` show `{{domain-profile}}`. The Lead receives the scope and the Lead focus; the Tester receives the scope and the Tester focus; the Guardrail Manager receives the scope only.
 
 ## Scope
 

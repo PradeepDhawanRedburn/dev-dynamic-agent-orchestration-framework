@@ -28,6 +28,7 @@ A single-domain assignment runs from a sponsor's request to an accepted result, 
 
 - [ ] The phase 2 exit criteria in the roadmap are met with a scripted model.
 - [ ] An assignment with unanswered mandatory questions does not start (tested).
+- [ ] A request that is not a technology assignment is declined at intake with the reason (ADR-0022).
 - [ ] A gate that times out takes its safe default (tested).
 - [ ] The sponsor's request and criteria appear verbatim in every model call that works on them (tested).
 

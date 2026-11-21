@@ -26,6 +26,7 @@ security review.
 | Reading another agent's memory | Namespace derived from caller identity; row-level security |
 | Data shown to someone not entitled | Retrieval filtered to the requesting human's access rights (ADR-0024) |
 | Cost exhaustion | Ledger reservations, per-call metering, call limits, timeouts, concurrency caps |
+| An agent's pull request triggering a privileged workflow | Workflows on agent-authored pull requests run read-only with no deployment secrets; the platform cannot approve or merge (ADR-0021) |
 | Supply chain | Pinned and hashed dependencies, private feed, signed images, pinned model versions |
 
 ## Budget
@@ -41,7 +42,7 @@ Two parts (ADR-0011):
 
 1. **Rule engine, code.** Counts audit events per agent in real time and returns none, flag or
    suspend. Reference: `reference/guardrails.py`.
-2. **Guardrail Manager, model.** Judges what the rules flagged. It can turn a flag into a
+2. **Guardrail Manager, model, one per Lead (ADR-0010).** Judges what the rules flagged for its Lead's agents. It can turn a flag into a
    suspension. It can never clear one.
 
 | Event | Flag at | Suspend at |
@@ -54,6 +55,8 @@ Two parts (ADR-0011):
 | Prompt hash mismatch | | 1 |
 | Stopped by budget | 1 | |
 | Output addresses excluded scope | 1 | 2 |
+
+Permanent agents are covered by the rule engine and the human security owner only; no Guardrail Manager judges them. That is a known gap.
 
 Suspension freezes credentials and moves the agent to Suspended. Nothing is deleted. A named
 human resumes or terminates. Thresholds are starting values to tune; they live in
@@ -84,7 +87,7 @@ prompt hash, template versions and model version; every tool call; every permiss
 every state transition; every budget event; every incident; every retirement. It does not depend
 on the tracing tool being available.
 
-## Earned autonomy (proposed, ADR-0023)
+## Earned autonomy (deferred, ADR-0023)
 
 Every assignment type starts with all its human gates. Measured quality held over an agreed
 number of runs may relax one low-risk gate for that type. A drop in quality or any suspension

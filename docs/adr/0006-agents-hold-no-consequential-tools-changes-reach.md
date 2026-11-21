@@ -1,6 +1,6 @@
 # ADR-0006: Agents hold no consequential tools; changes reach the estate as pull requests
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [ADR-0021](0021-pull-request-approval.md) for pull requests
 - **Date:** 2026-11-21
 
 ## Context
@@ -9,7 +9,7 @@ A compromised or mistaken agent must not be able to change anything.
 
 ## Decision
 
-No tool that changes state outside the platform is ever granted to an agent. A proposed change is emitted as a typed proposal, approved by a human, and carried out by a deterministic executor with its own narrow identity. For code and infrastructure the executor opens a pull request; people merge; the existing pipeline applies.
+No tool that changes state outside the platform is ever granted to an agent. A proposed change is emitted as a typed proposal, approved by a human, and carried out by a deterministic executor with its own narrow identity. For code and infrastructure the executor opens a pull request; people merge; the existing pipeline applies. Amendment (ADR-0021): for pull requests the human approval before the executor acts is removed; the human control is the review and merge.
 
 ## Consequences
 

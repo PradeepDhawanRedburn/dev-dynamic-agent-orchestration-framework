@@ -1,7 +1,7 @@
 # Dynamic Agent Orchestration Framework
 
-A governed platform in which a small permanent organisation of AI agents takes a business or
-technology requirement, creates temporary specialist agents to do the work, checks and
+A governed platform in which a small permanent organisation of AI agents takes a technology
+requirement, creates temporary specialist agents to do the work, checks and
 consolidates what they produce, and hands a human an evidence-backed result.
 
 This repository is the working record between the **architect** and the **implementers**.
@@ -13,7 +13,7 @@ machine and arrives as pull requests.
 | Area | State |
 | --- | --- |
 | Requirements and architecture | Approved through design Revision 2, plus the decisions recorded in the ADRs |
-| Open decisions | Four, listed in [docs/requirements/open-decisions.md](docs/requirements/open-decisions.md) |
+| Open decisions | One, deferred; see [docs/requirements/open-decisions.md](docs/requirements/open-decisions.md) |
 | Governance core (`reference/`) | Written and tested: 52 passing tests on Python 3.13, Pydantic 2 |
 | LangGraph, LangChain and Foundry code (`reference/lg/`) | Draft. Never run against the real libraries. See the spike checklist |
 | Permanent agents' prompts (`agents/`) | First drafts for all ten roles. Structure checked; not yet run against a model |
@@ -56,5 +56,5 @@ Define, Deliver, Assure, Control and Learn. Specialists are not code. Each is a 
 specification, optionally carrying skill packs such as Terraform or Argo CD, run by one shared
 worker and retired after its task. Every claim must cite evidence issued by the tool gateway.
 Budgets are reserved before work starts. No agent holds a tool that can change anything: changes
-reach your estate as pull requests that people merge. Humans decide at defined gates through one
+reach your estate as pull requests that people review and merge. Humans decide at defined gates through one
 interaction layer. The platform runs only on Azure, with models and tracing from Microsoft Foundry.

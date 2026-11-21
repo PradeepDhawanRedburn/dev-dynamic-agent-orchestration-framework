@@ -1,21 +1,28 @@
-# ADR-0022: Assignment scope: technology and business
+# ADR-0022: Assignment scope is technology only, for now
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-21
 
 ## Context
 
-All four original Leads are engineering roles, so a vendor comparison or business case has no natural owner.
+All four Lead profiles are engineering roles. The architect proposed adding a Business and
+Research profile so that business assignments have an owner. The repository owner decided to
+start with technology only and involve the business later.
 
 ## Decision
 
-Proposed: the platform serves technology and business assignments, with a fifth Lead profile, Business and Research.
+The platform accepts technology assignments only. Lead profiles are Data, Software, DevOps and
+Security. A request that is not a technology assignment is declined at intake by the Product
+Manager, with the reason.
+
+The Business and Research profile stays in `agents/profiles/` marked Deferred and is not loaded.
 
 ## Consequences
 
-- Needs a new `LeadRole` value, a profile and a standards library.
-- Awaiting the owner's decision.
+- "Domain-agnostic" means any technology topic.
+- Adding business assignments later needs a new ADR, a `LeadRole` value, a standards library and evaluation data. It needs no change to the graph or the roles (ADR-0007).
+- A technology assignment may still include commercial facts, such as vendor pricing, as evidence.
 
 ## Alternatives considered
 
-- Technology assignments only, stated as a boundary.
+- Technology and business from the start, with a fifth Lead profile: the architect's recommendation; not chosen for now.

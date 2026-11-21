@@ -14,7 +14,7 @@ More detail: [roles](roles.md) · [runtime design](runtime-design.md) · [govern
 3. **The human's words travel verbatim.** The original request and success criteria reach every agent unchanged, alongside whatever its manager adds.
 4. **Code decides, models draft.** A model returns one draft in a narrow schema. Code adds ids, budgets, ownership and consequences.
 5. **Evidence by construction.** Tools issue evidence ids. A claim can cite an id; it cannot create one (ADR-0004).
-6. **Agents cannot change your estate.** Changes arrive as pull requests that people merge (ADR-0006).
+6. **Agents cannot change your estate.** Changes arrive as pull requests that people merge (ADR-0006, ADR-0021).
 7. **Proportionate.** The size of an assignment decides how many roles and gates it uses (ADR-0017).
 
 ## Five functions, ten roles
@@ -23,7 +23,7 @@ More detail: [roles](roles.md) · [runtime design](runtime-design.md) · [govern
 | --- | --- | --- |
 | Define | Product Manager, CTO Agent | The right problem, and technical direction |
 | Deliver | Head of Delivery, Lead (one profile per domain), temporary specialists | The work |
-| Assure | Tester (one profile per Lead), Reviewer, Guardrail Manager | Proof, challenge, and policing |
+| Assure | Tester and Guardrail Manager (one profile each per Lead), Reviewer | Proof, challenge, and policing |
 | Control | Delivery Controller, Recruiter | Budget, schedule, priority; creating and retiring specialists |
 | Learn | Knowledge Steward | Prior answers and lessons |
 
@@ -45,7 +45,7 @@ See [runtime-design.md](runtime-design.md).
 | --- | --- | --- | --- |
 | Small | One domain, low budget, Internal data or lower, nothing proposed for change | Product Manager, one Lead, its Tester, specialists, code controls, Knowledge Steward intake check | Confirm framing; accept result |
 | Standard | Two or more domains, or mid-range budget | Adds Head of Delivery and Reviewer | Approve plan; accept result |
-| Major | Confidential data, high budget, or any proposed change | Adds CTO Agent recommendation | Approve plan; approve each change; accept result |
+| Major | Confidential data, high budget, or any proposed change | Adds CTO Agent recommendation | Approve plan; accept result. Pull requests are opened without asking and merged by people (ADR-0021); other changes need approval |
 
 Guardrail rules run in every tier. The first release implements Small only.
 

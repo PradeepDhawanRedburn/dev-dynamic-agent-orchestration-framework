@@ -1,6 +1,6 @@
 # Roles
 
-Ten permanent roles in five functions. Lead and Tester have one profile per domain; a new domain
+Ten permanent roles in five functions. Lead, Tester and Guardrail Manager have one profile per domain (ADR-0010); a new domain
 is a new profile, never a change to the graph.
 
 | Function | Role | Accountable for | Uses a model for | Small tier |
@@ -11,12 +11,12 @@ is a new profile, never a change to the graph.
 | Deliver | Lead | One workstream in one domain: tasks, specialist requests, direction, acceptance | Decomposition, staffing, review | One |
 | Assure | Tester | Checks written from acceptance criteria before work starts, then run on each result | Writing checks, judging claims against evidence | Yes |
 | Assure | Reviewer | An independent challenge of the consolidated answer, on a different model deployment | Adversarial review | No |
-| Assure | Guardrail Manager | No agent acting outside what was approved | Judging what the rule engine flags | Rules always |
+| Assure | Guardrail Manager | No agent working for its Lead acting outside what was approved. One per Lead; escalates directly to the security owner | Judging what the rule engine flags | Rules always |
 | Control | Delivery Controller | Budget, schedule, risks, priority across assignments | Status narrative only | As code |
 | Control | Recruiter | Creating, equipping and retiring specialists | Judging overlap between requests only | As code |
 | Learn | Knowledge Steward | Prior answers at intake; retrospective at close | Matching requests to past work | Intake check |
 
-Lead profiles at the start: Data, Software, DevOps, Security. Business and Research is proposed (ADR-0022).
+Lead profiles: Data, Software, DevOps, Security. Technology assignments only for now; a Business and Research profile is deferred (ADR-0022).
 
 ## Authority
 
@@ -28,7 +28,7 @@ Lead profiles at the start: Data, Software, DevOps, Security. Business and Resea
 | Resume or terminate a suspended agent | A named human: security owner, or sponsor when unavailable |
 | Force a revision | Evidence gate (code), Tester (failed report), or Lead |
 | Accept a specialist result | The Lead, and only with a passing test report |
-| Approve plan, budget overrun, proposed change, final result | A named human |
+| Approve plan, budget overrun, final result; merge pull requests; approve any other proposed change | A named human |
 | Cancel a project | Sponsor; platform-wide stop by the security owner |
 
 The CTO Agent and Product Manager recommend. They never approve (ADR-0008).

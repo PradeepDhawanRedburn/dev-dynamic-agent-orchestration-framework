@@ -19,14 +19,14 @@ files; prompts are not written in code (ADR-0025).
 | Deliver | Lead | [lead.agent.md](lead.agent.md) + a profile | Tasks, staffing requests, review |
 | Assure | Tester | [tester.agent.md](tester.agent.md) + a profile | Writing and running checks |
 | Assure | Reviewer | [reviewer.agent.md](reviewer.agent.md) | Independent challenge |
-| Assure | Guardrail Manager | [guardrail-manager.agent.md](guardrail-manager.agent.md) | Judging what the rules flagged |
+| Assure | Guardrail Manager | [guardrail-manager.agent.md](guardrail-manager.agent.md) + a profile | Judging what the rules flagged |
 | Control | Delivery Controller | [delivery-controller.agent.md](delivery-controller.agent.md) | Status narrative only |
 | Control | Recruiter | [recruiter.agent.md](recruiter.agent.md) | Overlap between requests only |
 | Learn | Knowledge Steward | [knowledge-steward.agent.md](knowledge-steward.agent.md) | Prior-work matching, retrospective |
 
-Domain profiles for Lead and Tester: [data](profiles/data.md), [software](profiles/software.md),
+Domain profiles for Lead, Tester and Guardrail Manager: [data](profiles/data.md), [software](profiles/software.md),
 [devops](profiles/devops.md), [security](profiles/security.md),
-[business-research](profiles/business-research.md) (proposed).
+[business-research](profiles/business-research.md) (deferred by ADR-0022; not loaded).
 
 ## Structure every file follows
 
@@ -42,7 +42,7 @@ Done by code, not by this agent.
 
 1. Read the file's `System prompt` block.
 2. Replace `{{organisational-policy}}` with the text in [_shared/organisational-policy.md](_shared/organisational-policy.md). It always comes first.
-3. For Lead and Tester, replace `{{domain-profile}}` with the profile's Scope block and the Lead focus or Tester focus block.
+3. For Lead, Tester and Guardrail Manager, replace `{{domain-profile}}` with the profile's Scope block, plus the Lead focus or Tester focus block for those two roles.
 4. Hash the result. Record the hash, the file versions and the model version on every run.
 
 The task-specific content (the requirement, results, figures) goes in the user message, never

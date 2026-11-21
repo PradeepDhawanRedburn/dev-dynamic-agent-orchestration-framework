@@ -1,6 +1,6 @@
 # Architecture decision records
 
-One decision per file. A decision is **Proposed** until the repository owner accepts it.
+One decision per file. A decision is **Proposed** until the repository owner accepts it, and **Deferred** when the owner has chosen to decide later.
 
 - **Accepted** means the owner approved it in the design review of 21 November 2026, either explicitly or by adopting the revision that contains it.
 - An Accepted ADR is never edited to change its meaning. To change a decision, add a new ADR that supersedes it and mark the old one `Superseded by ADR-NNNN`.
@@ -17,7 +17,7 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0007](0007-five-functions-and-ten-roles.md) | Five functions and ten roles | Accepted |
 | [0008](0008-humans-decide.md) | Humans decide; the CTO Agent recommends | Accepted |
 | [0009](0009-permanent-reviewer.md) | A permanent independent Reviewer | Accepted |
-| [0010](0010-guardrail-manager-placement.md) | Guardrail Manager placement | Proposed |
+| [0010](0010-guardrail-manager-placement.md) | Guardrail Manager placement: one per Lead | Accepted |
 | [0011](0011-guardrail-rules-decide-a-model-can-only-tighten.md) | Guardrail rules decide; a model can only tighten; suspension is reversible | Accepted |
 | [0012](0012-the-tester-writes-checks-first-and-a-failed-test.md) | The Tester writes checks first, and a failed test forces a revision | Accepted |
 | [0013](0013-skill-packs-provide-specialisation.md) | Skill packs provide specialisation | Accepted |
@@ -28,9 +28,9 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0018](0018-state-holds-references-consolidation-is-staged.md) | State holds references; consolidation is staged | Accepted |
 | [0019](0019-lean-first-release-platform.md) | Lean first-release platform | Accepted |
 | [0020](0020-platform-toolchain-terraform-github-actions-argo.md) | Platform toolchain: Terraform, GitHub Actions, Argo CD | Accepted |
-| [0021](0021-pull-request-approval.md) | Human approval for opening a pull request | Proposed |
-| [0022](0022-assignment-scope.md) | Assignment scope: technology and business | Proposed |
-| [0023](0023-earned-autonomy.md) | Earned autonomy | Proposed |
+| [0021](0021-pull-request-approval.md) | The platform opens pull requests without per-request human approval | Accepted |
+| [0022](0022-assignment-scope.md) | Assignment scope is technology only, for now | Accepted |
+| [0023](0023-earned-autonomy.md) | Earned autonomy | Deferred |
 | [0024](0024-retrieval-respects-the-requesting-human-s-access.md) | Retrieval respects the requesting human's access rights | Accepted |
 | [0025](0025-agent-definitions-are-versioned-files.md) | Permanent agents are defined in versioned files | Accepted |
 

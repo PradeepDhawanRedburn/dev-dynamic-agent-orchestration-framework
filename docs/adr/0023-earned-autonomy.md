@@ -1,6 +1,6 @@
 # ADR-0023: Earned autonomy
 
-- **Status:** Proposed
+- **Status:** Deferred
 - **Date:** 2026-11-21
 
 ## Context
@@ -15,3 +15,4 @@ Proposed: each assignment type starts with all human gates. When measured qualit
 
 - Needs sign-off from the governance function before it is switched on.
 - Not in the first release.
+- The repository owner has deferred this decision (21 November 2026). Nothing may depend on it until it is decided.

@@ -31,10 +31,10 @@ standards and name an owner for each pack before first use.
 ## How DevOps work reaches the estate
 
 1. The specialist writes the change. The Tester's checks pass and the Lead accepts it.
-2. After human approval, the action executor opens a pull request.
-3. GitHub Actions runs validation and the Terraform plan with its own identity. The specialist's
+2. The action executor opens a pull request, labelled as agent-authored, in an allow-listed repository. No human approval is asked first (ADR-0021).
+3. GitHub Actions runs validation and the Terraform plan with a read-only identity and no deployment secrets. The specialist's
    sandbox has no cloud credentials, so it reads the plan from the pipeline's result.
-4. Engineers review and merge.
+4. Engineers review and merge. This is the human gate; the platform cannot approve or merge.
 5. The pipeline and Argo CD apply the change, as for any human's pull request.
 
 ## Relation to "no predefined specialists"

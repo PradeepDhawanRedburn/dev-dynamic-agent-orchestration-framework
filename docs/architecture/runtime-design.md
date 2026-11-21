@@ -90,10 +90,12 @@ not pause themselves (ADR-0016).
 | --- | --- | --- |
 | Confirm framing (Small) or approve plan | Sponsor | Run expires; nothing spent |
 | Budget or deadline overrun | Sponsor | New work stops; partial result assembled |
-| Proposed change, including a pull request | Change owner | Change not made |
+| Proposed change other than a pull request | Change owner | Change not made |
 | Guardrail suspension | Security owner | Agent terminated |
 | Incident: runbook exhausted | Sponsor | Task cancelled |
 | Accept result | Sponsor | Result stays pending; agents are retired regardless |
+
+Pull requests have no gate in the graph: the executor opens them and people review and merge in GitHub (ADR-0021).
 
 A node that calls `interrupt()` re-runs from its first line on resume. Gate nodes therefore do
 nothing before the call, and any model work sits in the node before.

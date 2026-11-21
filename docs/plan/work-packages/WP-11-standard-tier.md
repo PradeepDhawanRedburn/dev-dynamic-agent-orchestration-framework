@@ -22,7 +22,7 @@ Multi-domain assignments: several Leads in parallel, staged consolidation and an
 2. Implement Lead summaries and staged consolidation with conflict return.
 3. Implement the Reviewer on a different model deployment, and return of material findings.
 4. Implement the tier rules.
-5. Add the Business and Research profile only if ADR-0022 is accepted.
+5. Lead profiles are Data, Software, DevOps and Security only (ADR-0022).
 
 ## Acceptance criteria
 

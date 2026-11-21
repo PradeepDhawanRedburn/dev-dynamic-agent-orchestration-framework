@@ -21,7 +21,7 @@ An agent that behaves outside what was approved is suspended in real time and a 
 2. Implement suspension so the Lead subgraph returns `decision_needed` and the supervisor raises the gate.
 3. Implement resume and terminate, including a held result going on to the evidence gate and Tester.
 4. Load rule thresholds from `policy/guardrail_rules.yaml`.
-5. Leave the Guardrail Manager's judgement step configurable as one per platform or one per Lead until ADR-0010 is decided.
+5. Run one Guardrail Manager per Lead profile, with its domain profile, and send every flag and suspension to the security owner as well as to the Lead (ADR-0010).
 
 ## Acceptance criteria
 
@@ -32,4 +32,4 @@ An agent that behaves outside what was approved is suspended in real time and a 
 
 ## Out of scope
 
-Changing which placement is used; that is the owner's decision.
+A Guardrail Manager for the permanent agents; they are covered by the rule engine and the security owner.

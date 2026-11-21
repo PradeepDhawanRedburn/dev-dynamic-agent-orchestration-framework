@@ -7,7 +7,7 @@ typical_skill_packs: azure-platform, terraform, github-actions
 ---
 # Domain profile: Security
 
-Inserted where `agents/lead.agent.md` and `agents/tester.agent.md` show `{{domain-profile}}`. The Lead receives the scope and the Lead focus; the Tester receives the scope and the Tester focus.
+Inserted where `agents/lead.agent.md`, `agents/tester.agent.md` and `agents/guardrail-manager.agent.md` show `{{domain-profile}}`. The Lead receives the scope and the Lead focus; the Tester receives the scope and the Tester focus; the Guardrail Manager receives the scope only.
 
 ## Scope
 
