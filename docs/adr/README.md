@@ -37,5 +37,8 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0027](0027-role-skills-and-tool-catalogue.md) | Permanent agents have role skills and a tool catalogue | Proposed |
 | [0028](0028-discovery-stage-and-requirement-baseline.md) | A discovery stage and an approved requirement baseline before any delivery | Accepted |
 | [0029](0029-use-of-the-langchain-family.md) | How the LangChain family of tools is used | Proposed |
+| [0030](0030-reasoning-patterns.md) | Which reasoning patterns the platform uses | Proposed |
+| [0031](0031-questions-without-stopping-the-run.md) | Agents can ask a person a question without stopping the run | Accepted |
+| [0032](0032-human-override.md) | A person can override an agent, with a reason, on the record | Accepted |
 
 New ADRs use [template.md](template.md).

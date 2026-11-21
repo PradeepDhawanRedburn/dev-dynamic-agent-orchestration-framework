@@ -11,6 +11,8 @@ Functions: IT sec, InfoSec, Arch (architecture), Legal, Compliance, AI gov (AI g
 | Flow | A model cannot alter the workflow | Graph compiled from code; agents are data | Platform design; LangGraph | Graph version on every run; generated diagram | WP-04, WP-05 | Arch, AI gov |
 | Flow | Requirement approved before any work | Discovery stage; baseline required by the Recruiter | Platform code | Decision register; refused requests in audit | WP-05 | Compliance, AI gov |
 | Decisions | Humans hold binding decisions | Gates raised as interrupts; identity verified before resume | LangGraph interrupt; interaction API; Entra ID | Decision register | WP-05, WP-09 | Compliance, AI gov |
+| Decisions | Agents ask instead of guessing; silence is never an answer | Question queue; provisional marking; gap on expiry | Platform code (ADR-0031) | Question store; decision register | WP-14 | AI gov, Compliance |
+| Decisions | A person can overrule an agent, visibly | Override with role check and mandatory reason; fixed list of what cannot be overridden | Platform code (ADR-0032) | Decision register; overrides listed on the deliverable | WP-14 | Compliance, AI gov, InfoSec |
 | Decisions | A timeout is never an approval | Safe default per gate | Platform code | Decision register | WP-05 | Compliance |
 | Traceability | Every action attributable | Append-only, hash-chained audit | Platform code; PostgreSQL | Audit store; chain verification | WP-02 | InfoSec, Compliance |
 | Traceability | Every claim backed by a captured source | Evidence ids issued only by the gateway | Platform code | Evidence store | WP-02, WP-03 | AI gov, Legal |
@@ -43,6 +45,7 @@ Stated so that no reviewer has to find them.
 | The LangSmith client library is present although LangSmith is not adopted | It is a dependency of LangChain | Left unconfigured, tested (WP-01); its hosts blocked at the egress proxy (WP-12); S-24 confirms default behaviour |
 | Web search sends queries outside the network | Inherent to research | Egress allow-list; an approved service (H-10); queries must not contain confidential content, enforced by classification |
 | The model provider processes prompts | Inherent to using a model | Foundry deployments in the tenant; terms to be confirmed by Legal |
+| A person can release work over a failed check or a review finding | Owner's requirement (ADR-0032) | Always recorded with a reason and shown on the deliverable; override counts reported |
 | Prompts and skills are unevaluated drafts | No evaluation data yet (H-13) | Nothing is promoted without passing the evaluation gate |
 | Nothing has been run against the real libraries | Design stage | WP-01 exists for this |
 | No penetration test, threat-model review or red-team exercise | Not yet scheduled | Required before production; phase 5 of the roadmap |

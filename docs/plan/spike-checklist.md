@@ -32,6 +32,8 @@ Written against LangGraph 1.2.24 documentation, read 21 November 2026.
 | S-22 | `get_state_history` returns enough to link a human decision to the state it was made on | Read, not run | Store the needed state reference in the decision register directly |
 | S-23 | What content filters and prompt-attack detection Foundry applies to the chosen deployments, and what is configurable | Not read | Rely on platform controls only; record the gap |
 | S-24 | With no LangSmith variables set, the installed `langsmith` package sends nothing over the network, and its pytest plugin makes no calls | It arrives as a dependency of `langchain`; default behaviour not read | Block its hosts at the egress proxy and disable the plugin; record in ADR-0029 |
+| S-25 | A scheduling node can read a store outside graph state on each pass, and a task returned as "waiting" can be dispatched again later in the same run with `Send` | Not run | Park at workstream level instead of task level |
+| S-26 | A run paused at the supervisor because nothing can proceed resumes correctly when an answer arrives while other answers are still outstanding | Not run | Resume on a timer and re-check the store |
 
 ## Also in the spike
 

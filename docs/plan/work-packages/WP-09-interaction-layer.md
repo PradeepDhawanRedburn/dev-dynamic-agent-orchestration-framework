@@ -29,4 +29,4 @@ People clarify, decide, ask and steer through one API and a minimal page.
 
 ## Out of scope
 
-The Teams bot.
+The Teams bot. Agent questions outside the gates, and override; those are WP-14 (ADR-0031, ADR-0032). Keep the decision card and the API open to them.

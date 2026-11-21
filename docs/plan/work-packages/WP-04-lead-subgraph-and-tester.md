@@ -22,6 +22,7 @@ One Lead profile can decompose a workstream, staff it, and return tested, accept
 2. Add `tester_write_checks` before staffing, and make `tester_validate` run those checks plus the specification's `required_checks`.
 3. Hold ids in state and read bodies from repositories.
 4. Define the schemas `CheckDrafts` and `WorkstreamSummary`.
+5. Keep the task outcome type and the scheduling step open to extension: WP-14 adds the outcomes "waiting" and "provisional" (ADR-0031). Do not build them here.
 
 ## Acceptance criteria
 

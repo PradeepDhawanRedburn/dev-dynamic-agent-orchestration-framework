@@ -31,6 +31,8 @@ autonomy.
 | F-16 | A permanent AI adviser role advises on the AI parts of an assignment (ADR-0026) |
 | F-17 | Every assignment passes ideation, refinement, clarification and consultation, and a human approves the requirement, before any planning, design or build starts (ADR-0028) |
 | F-18 | A change to an approved requirement is a recorded change request that a human approves, producing a new version |
+| F-19 | Any agent can leave a question for a person. Only work that depends on the answer waits; other work, including the same agent's, continues (ADR-0031) |
+| F-20 | A person is given options, may answer in their own words, and may override an agent's outcome with a recorded reason (ADR-0032) |
 | F-14 | Outputs other than text (code, diagrams, files) are recorded as artefacts with provenance |
 
 ## Control requirements

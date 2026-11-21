@@ -30,6 +30,9 @@ access. Each has an id cited by the tool catalogue, the skills and the work pack
 | H-21 | Classify the system under your AI governance framework | AI governance | Assess risk level, required oversight and documentation. Confirm the human gates are sufficient. Agree evaluation thresholds with the Leads' human counterparts. | No AI governance approval | Phase 5 |
 | H-22 | Decide ADR-0029 | Repository owner | Accept or change the proposed use of the LangChain family. | Implementers lack the middleware lists and tracing approach | WP-03, WP-10 |
 | H-23 | Protect the `main` branch | Repository owner | In the repository settings: require a pull request before merging, require the CI check to pass, and block force pushes. Note that this also stops the architect pushing documents directly; either exempt that or have the architect use pull requests too. | Anyone with access can push unreviewed changes to a public repository | Now |
+| H-24 | Say who answers which kind of question | Sponsor | Name the technical owner for technical questions, and confirm the routing in ADR-0031. Say whether assignments default to interactive or unattended. | Questions all go to the sponsor | WP-14 |
+| H-25 | Confirm who may override what | Repository owner; security owner | Review the table in ADR-0032. Name the people. Say whether any override needs two people. | Override roles are the architect's proposal | WP-14 |
+| H-26 | Decide ADR-0030 | Repository owner | Accept or change the architect's position on reasoning patterns. | WP-13 stays exploratory | WP-13 |
 
 ## How to hand something over
 

@@ -9,6 +9,10 @@
 Find out, by measurement, whether three published agent patterns improve results here, and adopt
 only those that do. Nothing in the current design changes until this work package reports.
 
+## The architect's position
+
+[ADR-0030](../../adr/0030-reasoning-patterns.md), Proposed: keep ReAct for specialists with a short plan first; add one self-check pass before submission; add a test-driven flow for code and configuration tasks; leave permanent agents single-call. If the owner accepts it, tasks 1 to 3 below build and measure those. Until then they are experiments.
+
 ## Where the design stands today
 
 Using LangGraph makes loops possible. It does not by itself mean these patterns are followed.

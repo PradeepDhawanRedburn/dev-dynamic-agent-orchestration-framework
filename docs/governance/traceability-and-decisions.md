@@ -57,7 +57,7 @@ One row per decision, human or code. Part of the audit store.
 | Field | Content |
 | --- | --- |
 | Decision id, time | |
-| Type | Choose option, approve requirement, approve plan, change request, budget overrun, resume or terminate a suspended agent, incident, accept result |
+| Type | Answer to an agent's question, override, choose option, approve requirement, approve plan, change request, budget overrun, resume or terminate a suspended agent, incident, accept result |
 | Decided by | A person's Entra identity and role, or the name of the rule for a code decision |
 | The card shown | Question, options, recommendation and who recommended it, evidence ids, default, deadline |
 | Outcome and comment | |
@@ -69,6 +69,8 @@ Rules:
 - A human decision is written by the interaction API only after it has verified identity and role.
 - An agent's recommendation is recorded as a recommendation, with the agent's id. It is never recorded as a decision (ADR-0008).
 - A timeout is recorded as a timeout with the default taken. It is never recorded as approval.
+- An agent's answer to another agent's question is recorded as an agent's answer. A person's override of it is a separate row that names what it overrode and gives the reason (ADR-0032).
+- Results that relied on an unanswered assumption are marked provisional, and the deliverable lists them.
 - Code decisions that change an outcome are recorded too: evidence gate rejections, budget refusals, guardrail suspensions, tier assignment, who was consulted.
 
 ## Questions an auditor can answer
