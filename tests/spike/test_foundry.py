@@ -141,6 +141,31 @@ def test_s23_prompt_attack_is_blocked_with_a_non_retryable_error() -> None:
 
 
 @pytest.mark.parametrize("responses", [False, True], ids=["chat_completions", "responses"])
+@pytest.mark.parametrize("variable", DEPLOYMENT_VARIABLES)
+def test_s09_each_deployment_returns_a_validated_specialist_output(
+    variable: str, responses: bool
+) -> None:
+    if not os.environ.get(variable):
+        pytest.skip(f"could not test: {variable} is not set")
+    agent = create_agent(
+        make_model(variable, responses=responses),
+        tools=[],
+        response_format=ToolStrategy(SpecialistOutput),
+    )
+    try:
+        result = agent.invoke({"messages": [HumanMessage(TASK)]})
+    except openai.NotFoundError:
+        pytest.skip(f"could not test: no deployment named {os.environ[variable]!r} (404)")
+    except openai.BadRequestError as error:
+        # Observed on the 6.x deployments: function tools are refused on chat completions.
+        assert not responses and "Function tools with reasoning_effort" in str(error)
+        pytest.xfail(f"{os.environ[variable]} refuses function tools on chat completions")
+    assert isinstance(result["structured_response"], SpecialistOutput)
+    usage = [m.usage_metadata for m in result["messages"] if isinstance(m, AIMessage)]
+    print(f"S-09 {os.environ[variable]} responses={responses}:", usage)
+
+
+@pytest.mark.parametrize("responses", [False, True], ids=["chat_completions", "responses"])
 def test_s16_real_model_include_raw_returns_raw_parsed_and_parsing_error(responses: bool) -> None:
     structured = make_model(responses=responses).with_structured_output(
         SpecialistOutput, include_raw=True

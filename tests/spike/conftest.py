@@ -7,6 +7,7 @@ Tests marked `postgres` use a throwaway local container, or `SPIKE_POSTGRES_DSN`
 
 import asyncio
 import os
+import pathlib
 import secrets
 import shutil
 import subprocess
@@ -21,6 +22,21 @@ POSTGRES_IMAGE = (
     "postgres:17-alpine@sha256:526f86d93c6ea08fd3f1fe5605650cacc781b2c6013169a0ad8f42c7d3d84f32"
 )
 FOUNDRY_VARIABLES = ("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY")
+
+
+def load_foundry_settings() -> None:
+    """Read AZURE_* settings from the git-ignored .env; a variable already set wins."""
+    env_file = pathlib.Path(__file__).resolve().parents[2] / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        key, separator, value = line.partition("=")
+        key = key.strip()
+        if separator and key.startswith("AZURE_") and not line.lstrip().startswith("#"):
+            os.environ.setdefault(key, value.strip())
+
+
+load_foundry_settings()
 
 
 def run_async[T](coro: Coroutine[Any, Any, T]) -> T:
