@@ -3,7 +3,7 @@ name = "orchestrator"
 version = "0.0.0"
 description = "Dynamic agent orchestration framework"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "pydantic==2.14.4",
     "langgraph==1.2.24",
@@ -32,14 +32,14 @@ addopts = "-ra --strict-markers"
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 extend-exclude = ["reference"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 strict = true
 files = ["src", "tests"]
 mypy_path = "src"

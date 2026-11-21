@@ -63,7 +63,7 @@ The architect does not write production code. The implementer does not change ar
 
 ## Development setup
 
-Python 3.12 or later and [uv](https://docs.astral.sh/uv/). Dependencies are pinned in `pyproject.toml` and locked in `uv.lock`.
+Python 3.13 and [uv](https://docs.astral.sh/uv/). Dependencies are pinned in `pyproject.toml` and locked in `uv.lock`.
 
 ```bash
 uv sync --locked                 # create .venv from the lock file
