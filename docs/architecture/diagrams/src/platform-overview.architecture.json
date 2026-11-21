@@ -1,0 +1,278 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Platform overview on Azure and Microsoft Foundry",
+  "output": "docs/architecture/diagrams/platform-overview.html",
+  "quality_profile": "showcase"
+ },
+ "components": [
+  {
+   "id": "users",
+   "type": "external",
+   "label": "People",
+   "sublabel": "sponsor, approvers",
+   "pos": [
+    40,
+    300
+   ],
+   "size": [
+    120,
+    60
+   ]
+  },
+  {
+   "id": "interaction",
+   "type": "frontend",
+   "label": "Interaction layer",
+   "sublabel": "Teams bot, web console",
+   "pos": [
+    250,
+    300
+   ],
+   "size": [
+    130,
+    60
+   ]
+  },
+  {
+   "id": "orchestrator",
+   "type": "backend",
+   "label": "Orchestrator",
+   "sublabel": "LangGraph supervisor",
+   "pos": [
+    460,
+    300
+   ],
+   "size": [
+    130,
+    60
+   ],
+   "tag": "fixed graph"
+  },
+  {
+   "id": "workers",
+   "type": "backend",
+   "label": "Lead and specialists",
+   "sublabel": "one worker runtime",
+   "pos": [
+    670,
+    300
+   ],
+   "size": [
+    130,
+    60
+   ],
+   "tag": "specs are data"
+  },
+  {
+   "id": "gateway",
+   "type": "security",
+   "label": "Tool gateway",
+   "sublabel": "grants, audit, evidence",
+   "pos": [
+    880,
+    300
+   ],
+   "size": [
+    130,
+    60
+   ]
+  },
+  {
+   "id": "enterprise",
+   "type": "external",
+   "label": "Your estate",
+   "sublabel": "GitHub, Argo CD, Azure",
+   "pos": [
+    1090,
+    300
+   ],
+   "size": [
+    130,
+    60
+   ],
+   "tag": "read-only"
+  },
+  {
+   "id": "governance",
+   "type": "security",
+   "label": "Governance services",
+   "sublabel": "policy, ledger, registry",
+   "pos": [
+    460,
+    150
+   ],
+   "size": [
+    130,
+    60
+   ],
+   "tag": "code, no model"
+  },
+  {
+   "id": "sandbox",
+   "type": "backend",
+   "label": "Sandbox",
+   "sublabel": "static checks, no network",
+   "pos": [
+    880,
+    150
+   ],
+   "size": [
+    130,
+    60
+   ]
+  },
+  {
+   "id": "postgres",
+   "type": "database",
+   "label": "PostgreSQL",
+   "sublabel": "state, audit, ledger",
+   "pos": [
+    460,
+    450
+   ],
+   "size": [
+    130,
+    60
+   ],
+   "tag": "system of record"
+  },
+  {
+   "id": "foundry",
+   "type": "cloud",
+   "label": "Microsoft Foundry",
+   "sublabel": "model deployments",
+   "pos": [
+    670,
+    450
+   ],
+   "size": [
+    130,
+    60
+   ]
+  },
+  {
+   "id": "evidence",
+   "type": "database",
+   "label": "Blob Storage",
+   "sublabel": "evidence, artefacts",
+   "pos": [
+    880,
+    450
+   ],
+   "size": [
+    130,
+    60
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "security-group",
+   "label": "Private AKS cluster",
+   "wraps": [
+    "interaction",
+    "orchestrator",
+    "workers",
+    "gateway",
+    "governance",
+    "sandbox"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "from": "users",
+   "to": "interaction",
+   "label": "Teams, web",
+   "variant": "emphasis"
+  },
+  {
+   "from": "interaction",
+   "to": "orchestrator",
+   "label": "decisions"
+  },
+  {
+   "from": "orchestrator",
+   "to": "workers",
+   "label": "fan-out",
+   "variant": "emphasis"
+  },
+  {
+   "from": "workers",
+   "to": "gateway",
+   "label": "tool call"
+  },
+  {
+   "from": "gateway",
+   "to": "enterprise",
+   "label": "read-only",
+   "variant": "security"
+  },
+  {
+   "from": "orchestrator",
+   "to": "governance",
+   "label": "policy, budget",
+   "variant": "security",
+   "fromSide": "top",
+   "toSide": "bottom"
+  },
+  {
+   "from": "gateway",
+   "to": "sandbox",
+   "label": "run checks",
+   "fromSide": "top",
+   "toSide": "bottom"
+  },
+  {
+   "from": "orchestrator",
+   "to": "postgres",
+   "label": "checkpoints",
+   "fromSide": "bottom",
+   "toSide": "top"
+  },
+  {
+   "from": "workers",
+   "to": "foundry",
+   "label": "model calls",
+   "fromSide": "bottom",
+   "toSide": "top"
+  },
+  {
+   "from": "gateway",
+   "to": "evidence",
+   "label": "evidence",
+   "variant": "dashed",
+   "fromSide": "bottom",
+   "toSide": "top"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "title": "Control",
+   "items": [
+    "The graph topology never changes at runtime",
+    "Specialists are specifications run by one worker"
+   ]
+  },
+  {
+   "dot": "rose",
+   "title": "Boundaries",
+   "items": [
+    "Agents never hold credentials; the gateway does",
+    "No tool granted to an agent can change your estate",
+    "Changes reach it as pull requests that people merge"
+   ]
+  },
+  {
+   "dot": "emerald",
+   "title": "Not drawn",
+   "items": [
+    "Traces go through Foundry into Application Insights",
+    "Service Bus, Redis and AI Search are added when measured need appears"
+   ]
+  }
+ ]
+}

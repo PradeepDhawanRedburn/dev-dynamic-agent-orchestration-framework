@@ -1,0 +1,295 @@
+{
+ "schema_version": 2,
+ "diagram_type": "workflow",
+ "meta": {
+  "title": "How an assignment flows through the five functions",
+  "output": "docs/architecture/diagrams/assignment-flow.html",
+  "quality_profile": "showcase"
+ },
+ "lanes": [
+  {
+   "id": "humans",
+   "label": "Humans decide"
+  },
+  {
+   "id": "define",
+   "label": "Define"
+  },
+  {
+   "id": "deliver",
+   "label": "Deliver"
+  },
+  {
+   "id": "assure",
+   "label": "Assure"
+  },
+  {
+   "id": "control",
+   "label": "Control and Learn"
+  }
+ ],
+ "mainPath": [
+  "sponsor",
+  "pm",
+  "hod",
+  "approve",
+  "lead",
+  "specialists",
+  "consolidate",
+  "accept"
+ ],
+ "nodes": [
+  {
+   "id": "sponsor",
+   "lane": "humans",
+   "col": 0,
+   "type": "external",
+   "label": "Sponsor",
+   "sublabel": "states the need"
+  },
+  {
+   "id": "approve",
+   "lane": "humans",
+   "col": 2,
+   "type": "security",
+   "label": "Approve plan",
+   "sublabel": "human gate"
+  },
+  {
+   "id": "guard_decision",
+   "lane": "humans",
+   "col": 4,
+   "type": "security",
+   "label": "Resume or stop",
+   "sublabel": "security owner"
+  },
+  {
+   "id": "accept",
+   "lane": "humans",
+   "col": 5,
+   "type": "security",
+   "label": "Accept result",
+   "sublabel": "human gate"
+  },
+  {
+   "id": "pm",
+   "lane": "define",
+   "col": 1,
+   "type": "frontend",
+   "label": "Product Manager",
+   "sublabel": "frame and clarify"
+  },
+  {
+   "id": "cto",
+   "lane": "define",
+   "col": 5,
+   "type": "frontend",
+   "label": "CTO Agent",
+   "sublabel": "recommends",
+   "tag": "Major tier"
+  },
+  {
+   "id": "hod",
+   "lane": "deliver",
+   "col": 2,
+   "type": "backend",
+   "label": "Head of Delivery",
+   "sublabel": "plan workstreams"
+  },
+  {
+   "id": "lead",
+   "lane": "deliver",
+   "col": 3,
+   "type": "backend",
+   "label": "Lead",
+   "sublabel": "tasks and staffing"
+  },
+  {
+   "id": "specialists",
+   "lane": "deliver",
+   "col": 4,
+   "type": "backend",
+   "label": "Specialists",
+   "sublabel": "with skill packs",
+   "tag": "temporary"
+  },
+  {
+   "id": "consolidate",
+   "lane": "deliver",
+   "col": 5,
+   "type": "backend",
+   "label": "Consolidate",
+   "sublabel": "staged summary"
+  },
+  {
+   "id": "tester",
+   "lane": "assure",
+   "col": 3,
+   "type": "security",
+   "label": "Tester",
+   "sublabel": "checks first"
+  },
+  {
+   "id": "guardrail",
+   "lane": "assure",
+   "col": 4,
+   "type": "security",
+   "label": "Guardrail Manager",
+   "sublabel": "rules, then judgement"
+  },
+  {
+   "id": "reviewer",
+   "lane": "assure",
+   "col": 5,
+   "type": "security",
+   "label": "Reviewer",
+   "sublabel": "independent challenge"
+  },
+  {
+   "id": "steward",
+   "lane": "control",
+   "col": 1,
+   "type": "database",
+   "label": "Knowledge Steward",
+   "sublabel": "prior answers"
+  },
+  {
+   "id": "controller",
+   "lane": "control",
+   "col": 2,
+   "type": "messagebus",
+   "label": "Delivery Controller",
+   "sublabel": "budget and priority"
+  },
+  {
+   "id": "recruiter",
+   "lane": "control",
+   "col": 3,
+   "type": "messagebus",
+   "label": "Recruiter",
+   "sublabel": "provision, retire"
+  }
+ ],
+ "edges": [
+  {
+   "from": "sponsor",
+   "to": "pm",
+   "label": "request"
+  },
+  {
+   "from": "pm",
+   "to": "hod",
+   "label": "framed request",
+   "variant": "emphasis"
+  },
+  {
+   "from": "hod",
+   "to": "approve",
+   "label": "plan"
+  },
+  {
+   "from": "approve",
+   "to": "lead",
+   "label": "approved",
+   "variant": "emphasis"
+  },
+  {
+   "from": "lead",
+   "to": "specialists",
+   "label": "direct"
+  },
+  {
+   "from": "specialists",
+   "to": "consolidate",
+   "label": "accepted results"
+  },
+  {
+   "from": "consolidate",
+   "to": "accept",
+   "label": "deliverable",
+   "variant": "emphasis"
+  },
+  {
+   "from": "steward",
+   "to": "pm",
+   "label": "reuse",
+   "variant": "dashed",
+   "role": "branch"
+  },
+  {
+   "from": "hod",
+   "to": "controller",
+   "label": "budget",
+   "variant": "dashed",
+   "role": "branch"
+  },
+  {
+   "from": "lead",
+   "to": "tester",
+   "label": "criteria",
+   "role": "branch"
+  },
+  {
+   "from": "tester",
+   "to": "recruiter",
+   "label": "checks set",
+   "variant": "dashed",
+   "role": "branch"
+  },
+  {
+   "from": "specialists",
+   "to": "guardrail",
+   "label": "audit events",
+   "variant": "security",
+   "role": "branch"
+  },
+  {
+   "from": "guardrail",
+   "to": "guard_decision",
+   "label": "suspend",
+   "variant": "security",
+   "role": "error"
+  },
+  {
+   "from": "consolidate",
+   "to": "reviewer",
+   "label": "challenge",
+   "role": "branch"
+  },
+  {
+   "from": "cto",
+   "to": "accept",
+   "label": "advice",
+   "variant": "dashed",
+   "role": "branch"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "title": "Reading the lanes",
+   "items": [
+    "No function checks its own work",
+    "The human's words travel unchanged to every agent"
+   ]
+  },
+  {
+   "dot": "amber",
+   "title": "Size tiers",
+   "items": [
+    "Small: Product Manager, one Lead, its Tester, code controls",
+    "Standard adds Head of Delivery and Reviewer",
+    "Major adds the CTO Agent recommendation"
+   ]
+  },
+  {
+   "dot": "rose",
+   "title": "Simplified here",
+   "items": [
+    "Recruiter provisions and retires every specialist",
+    "Tester also runs its checks on each result before the Lead accepts",
+    "Revision and re-staffing loops are not drawn"
+   ]
+  }
+ ]
+}

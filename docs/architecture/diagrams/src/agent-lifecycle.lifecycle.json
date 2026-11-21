@@ -1,0 +1,204 @@
+{
+ "schema_version": 3,
+ "diagram_type": "lifecycle",
+ "meta": {
+  "title": "Dynamic specialist lifecycle",
+  "output": "docs/architecture/diagrams/agent-lifecycle.html",
+  "quality_profile": "showcase"
+ },
+ "mainPath": [
+  "requested",
+  "provisioned",
+  "running",
+  "in_review",
+  "accepted",
+  "retired"
+ ],
+ "states": [
+  {
+   "id": "requested",
+   "type": "start",
+   "label": "Requested",
+   "sublabel": "lead asks",
+   "step": "01"
+  },
+  {
+   "id": "provisioned",
+   "type": "active",
+   "label": "Provisioned",
+   "sublabel": "vetted, equipped",
+   "step": "02"
+  },
+  {
+   "id": "running",
+   "type": "active",
+   "label": "Running",
+   "sublabel": "does the task",
+   "step": "03"
+  },
+  {
+   "id": "in_review",
+   "type": "decision",
+   "label": "In review",
+   "sublabel": "tests, then lead",
+   "step": "04"
+  },
+  {
+   "id": "accepted",
+   "type": "success",
+   "label": "Accepted",
+   "sublabel": "result kept",
+   "step": "05"
+  },
+  {
+   "id": "retired",
+   "type": "neutral",
+   "label": "Retired",
+   "sublabel": "access revoked",
+   "step": "06"
+  },
+  {
+   "id": "rejected",
+   "type": "failure",
+   "label": "Rejected",
+   "sublabel": "request refused"
+  },
+  {
+   "id": "suspended",
+   "type": "waiting",
+   "label": "Suspended",
+   "sublabel": "access frozen",
+   "tag": "human decides"
+  },
+  {
+   "id": "revision",
+   "type": "waiting",
+   "label": "Revision",
+   "sublabel": "sent back"
+  },
+  {
+   "id": "failed",
+   "type": "failure",
+   "label": "Failed",
+   "sublabel": "or timed out"
+  },
+  {
+   "id": "cancelled",
+   "type": "failure",
+   "label": "Cancelled",
+   "sublabel": "kill switch"
+  }
+ ],
+ "transitions": [
+  {
+   "from": "requested",
+   "to": "provisioned"
+  },
+  {
+   "from": "provisioned",
+   "to": "running"
+  },
+  {
+   "from": "running",
+   "to": "in_review"
+  },
+  {
+   "from": "in_review",
+   "to": "accepted"
+  },
+  {
+   "from": "accepted",
+   "to": "retired"
+  },
+  {
+   "from": "requested",
+   "to": "rejected",
+   "label": "refused",
+   "variant": "security"
+  },
+  {
+   "from": "rejected",
+   "to": "retired",
+   "label": "record",
+   "variant": "dashed"
+  },
+  {
+   "from": "running",
+   "to": "suspended",
+   "label": "guardrail",
+   "variant": "security"
+  },
+  {
+   "from": "suspended",
+   "to": "running",
+   "label": "human resumes"
+  },
+  {
+   "from": "suspended",
+   "to": "failed",
+   "label": "terminate",
+   "variant": "security"
+  },
+  {
+   "from": "in_review",
+   "to": "revision",
+   "label": "revise"
+  },
+  {
+   "from": "revision",
+   "to": "running",
+   "label": "run again"
+  },
+  {
+   "from": "running",
+   "to": "failed",
+   "label": "error",
+   "variant": "security"
+  },
+  {
+   "from": "failed",
+   "to": "retired",
+   "label": "retire",
+   "variant": "dashed"
+  },
+  {
+   "from": "running",
+   "to": "cancelled",
+   "label": "cancel",
+   "variant": "security"
+  },
+  {
+   "from": "cancelled",
+   "to": "retired",
+   "label": "retire",
+   "variant": "dashed"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "emerald",
+   "title": "Enforced in code",
+   "items": [
+    "The registry refuses any move not in the transition table",
+    "Retirement cannot be recorded while access is still live"
+   ]
+  },
+  {
+   "dot": "amber",
+   "title": "Suspension",
+   "items": [
+    "A Guardrail Manager freezes access; nothing is deleted",
+    "Only a named human resumes or terminates"
+   ]
+  },
+  {
+   "dot": "rose",
+   "title": "Not drawn",
+   "items": [
+    "Provisioned stands for Validated, Approved, Provisioned, Registered and Assigned",
+    "A resumed agent returns to Assigned and is dispatched again, or goes to review if it had finished",
+    "Cancel is allowed from every state after approval"
+   ]
+  }
+ ]
+}
