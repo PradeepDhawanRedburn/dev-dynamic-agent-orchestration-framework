@@ -5,11 +5,17 @@
 ```mermaid
 flowchart TD
   START([start]) --> reuse[knowledge_intake_check]
-  reuse --> frame[product_frame]
-  frame --> clarify{{confirm_framing: human}}
+  reuse --> options[product_options]
+  options --> choose{{choose_option: human}}
+  choose --> frame[product_frame]
+  frame --> ask{{answer_questions: human}}
+  ask --> consult[consult_lead_and_cost_range]
+  consult --> ready{definition_of_ready}
+  ready -->|not ready, rounds left| frame
+  ready -->|ready| clarify{{approve_requirement: human}}
   clarify -->|changes| frame
   clarify -->|rejected| retire
-  clarify -->|confirmed| controls[controller_set_limits]
+  clarify -->|approved: baseline| controls[controller_set_limits]
   controls --> lead[[lead_workstream]]
   lead --> gate{decision needed?}
   gate -->|guardrail or incident| human{{human_decision}}
@@ -22,7 +28,12 @@ flowchart TD
   retro --> archive[archive] --> END([end])
 ```
 
-Standard and Major tiers add, in this order (ADR-0026):
+The nodes before `approve_requirement` are the discovery stage (ADR-0028); see
+[delivery-lifecycle.md](delivery-lifecycle.md). `choose_option` and `answer_questions` are
+skipped when there is one reading and no question. In Standard and Major, consultation fans out
+to the Leads named in the draft, the Solution Architect and, where relevant, the AI Specialist.
+
+After the baseline, Standard and Major tiers add, in this order (ADR-0026):
 
 1. `delivery_plan`: the Head of Delivery drafts workstreams and marks whether there is an AI component.
 2. `ai_advice`: the AI Specialist, only if the AI component is marked.
@@ -77,7 +88,7 @@ State holds references; bodies are read from the stores.
 | --- | --- | --- |
 | Revisions per task | 2 | Result rejected; task re-staffed if rounds remain, otherwise reported as a gap |
 | Recruitment rounds per workstream | 2 | Gap reported |
-| Framing rounds | 2 | Run ends as not confirmed |
+| Refinement rounds in discovery | 3 | Run ends as not confirmed |
 | Sponsor rework cycles | 2 | Run ends with the last deliverable |
 
 Counters live in state. A `recursion_limit` is a final backstop.
@@ -97,7 +108,10 @@ not pause themselves (ADR-0016).
 
 | Gate | Approver | No answer means |
 | --- | --- | --- |
-| Confirm framing (Small) or approve plan | Sponsor | Run expires; nothing spent |
+| Choose an option; answer mandatory questions | Sponsor | Run expires |
+| Approve requirement (every tier) | Sponsor | Run expires; nothing built |
+| Approve plan and design (Standard, Major) | Sponsor | Run expires; nothing built |
+| Change request after the baseline | Sponsor | Change not made; work continues on the current baseline |
 | Budget or deadline overrun | Sponsor | New work stops; partial result assembled |
 | Proposed change other than a pull request | Change owner | Change not made |
 | Guardrail suspension | Security owner | Agent terminated |

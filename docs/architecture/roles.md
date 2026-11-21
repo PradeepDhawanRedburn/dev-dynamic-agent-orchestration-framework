@@ -32,6 +32,8 @@ Lead profiles: Data, Software, DevOps, Security. Technology assignments only for
 | Draft the solution design | The Solution Architect; approved by the sponsor as part of the plan |
 | Settle a disagreement about the design | The CTO Agent recommends; the sponsor decides if it changes the approved plan |
 | Accept a specialist result | The Lead, and only with a passing test report |
+| Choose an option; approve the requirement baseline and any change to it | The sponsor |
+| Be consulted on a requirement draft | Leads, Solution Architect, AI Specialist; chosen by code |
 | Approve plan, budget overrun, final result; merge pull requests; approve any other proposed change | A named human |
 | Cancel a project | Sponsor; platform-wide stop by the security owner |
 

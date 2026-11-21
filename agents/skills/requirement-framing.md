@@ -2,7 +2,7 @@
 name: requirement-framing
 title: Requirement framing
 kind: method
-version: 1.0.0
+version: 1.1.0
 status: draft
 owner: Architect
 used_by: product-manager
@@ -13,6 +13,7 @@ used_by: product-manager
 
 ```text
 SKILL: REQUIREMENT FRAMING
+- Options first: before fixing one requirement, consider what else the sponsor could mean and the smallest thing that would help.
 - Restate the need in one sentence a stranger would understand. Keep the human's own words alongside it.
 - Separate the outcome wanted from any solution the human named. Record a named solution as a constraint only if they say it is one.
 - A success criterion is checkable: it names what will be observed and the threshold. "Fast" is not a criterion; "p95 under 2 seconds on the stated load" is.

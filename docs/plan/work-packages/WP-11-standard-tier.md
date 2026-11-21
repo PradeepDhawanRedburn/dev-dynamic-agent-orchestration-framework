@@ -14,6 +14,7 @@ Multi-domain assignments: several Leads in parallel, staged consolidation and an
 - ADR-0018
 - ADR-0022
 - ADR-0026
+- ADR-0028
 - agents/head-of-delivery.agent.md
 - agents/reviewer.agent.md
 - agents/solution-architect.agent.md
@@ -28,13 +29,15 @@ Multi-domain assignments: several Leads in parallel, staged consolidation and an
 5. Implement the Solution Architect: `SolutionDesignDraft` attached to the plan before the approval gate, passed unchanged to every Lead, and `DesignConformance` after consolidation.
 6. Implement the AI Specialist: invoked when the plan marks an AI component or a Lead asks, with a limit on requests, and with recommended models checked against the approved list.
 7. Route a disagreement about the design to the CTO Agent.
-8. Lead profiles are Data, Software, DevOps and Security only (ADR-0022).
+8. Extend discovery for Standard and Major: full options, and consultation fanned out to the named Leads, the Solution Architect, the AI Specialist where relevant, and the human security owner for Major.
+9. Lead profiles are Data, Software, DevOps and Security only (ADR-0022).
 
 ## Acceptance criteria
 
 - [ ] Only the Leads named in the plan are invoked (tested).
 - [ ] A contradiction between workstreams reaches the owning Leads and, if unresolved, the sponsor with both positions (tested).
 - [ ] The Reviewer's deployment differs from the producers' (tested).
+- [ ] Requirement approval and plan approval are separate gates, in that order (tested).
 - [ ] The sponsor sees the plan and the design at one gate; no Lead starts before approval (tested).
 - [ ] Every component in the design has one owning workstream and every mandatory criterion is referenced (validated in code).
 - [ ] The AI Specialist is not invoked when no AI component is marked (tested).

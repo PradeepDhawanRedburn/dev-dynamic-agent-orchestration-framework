@@ -31,21 +31,21 @@ Humans decide. See [roles.md](roles.md). Each role's system prompt is in [agents
 
 ## Runtime in brief
 
-- **Supervisor graph.** Intake, framing, plan, solution design, approval, fan-out to Leads, consolidation, review, final decision, retirement, archive.
+- **Supervisor graph.** Discovery (intake, options, requirement draft, clarification, consultation, requirement approval), then plan, solution design, approval, fan-out to Leads, consolidation, review, final decision, retirement, archive.
 - **Lead subgraph.** One compiled graph for every Lead profile: decompose, request specialists, reserve budget, fan out, guardrail check, evidence gate, test, review, loop or finish, retire.
 - **Worker.** Builds a LangChain agent from an `AgentSpecification` and runs it. This is the only path by which a specialist executes.
 - **Tool gateway.** Every tool call passes it: kill switch, grant, call limit, schema, execution with self-healing, clearance, evidence capture, audit.
 - **Human gates.** Raised at the supervisor as LangGraph interrupts and shown through the interaction layer.
 
-See [runtime-design.md](runtime-design.md).
+See [runtime-design.md](runtime-design.md) and, for the stages from request to result, [delivery-lifecycle.md](delivery-lifecycle.md).
 
 ## Size tiers
 
 | Tier | When | Roles | Human gates |
 | --- | --- | --- | --- |
-| Small | One domain, low budget, Internal data or lower, nothing proposed for change | Product Manager, one Lead, its Tester, specialists, code controls, Knowledge Steward intake check | Confirm framing; accept result |
-| Standard | Two or more domains, or mid-range budget | Adds Head of Delivery, Solution Architect, Reviewer, and the AI Specialist when the plan marks an AI component | Approve plan; accept result |
-| Major | Confidential data, high budget, or any proposed change | Adds CTO Agent recommendation | Approve plan; accept result. Pull requests are opened without asking and merged by people (ADR-0021); other changes need approval |
+| Small | One domain, low budget, Internal data or lower, nothing proposed for change | Product Manager, one Lead, its Tester, specialists, code controls, Knowledge Steward intake check | Approve requirement; accept result |
+| Standard | Two or more domains, or mid-range budget | Adds Head of Delivery, Solution Architect, Reviewer, and the AI Specialist when the plan marks an AI component | Approve requirement; approve plan; accept result |
+| Major | Confidential data, high budget, or any proposed change | Adds CTO Agent recommendation | Approve requirement; approve plan; accept result. Pull requests are opened without asking and merged by people (ADR-0021); other changes need approval |
 
 Guardrail rules run in every tier. The first release implements Small only.
 

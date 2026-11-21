@@ -71,7 +71,7 @@ Every file is `status: draft`. These prompts were written by the architect and *
 run against any model or evaluated**. WP-03 loads them; WP-10 evaluates them. Expect to revise
 them from evidence.
 
-Some output schemas named here do not exist in the reference code yet: `ClarifyingQuestions`,
+Some output schemas named here do not exist in the reference code yet: `OptionsDraft`, `ConsultationNote`, `ChangeImpact`, `ClarifyingQuestions`,
 `AcceptanceCheck`, `Arbitration`, `CheckDrafts`, `ReviewFindings`, `WorkstreamSummary`,
 `StatusNarrative`, `SolutionDesignDraft`, `DesignConformance`, `AiAdvice`, `OverlapJudgement`, `PriorWorkMatches`, `RetrospectiveDraft`. The work package
 that introduces each role defines its schemas.

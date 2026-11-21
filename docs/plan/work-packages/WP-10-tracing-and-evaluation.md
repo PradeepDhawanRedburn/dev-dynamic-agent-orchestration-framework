@@ -28,6 +28,10 @@ Every run is traceable in Application Insights, and prompt or model changes are 
 - [ ] Changing a prompt in `agents/` without passing the evaluation job cannot be merged.
 - [ ] The adversarial set shows no case reaching a tool outside its grant.
 
+## Added by ADR-0028
+
+Measure rework (revision rounds, sponsor "more work" decisions, change requests) and time to the requirement baseline, so the cost and benefit of the discovery stage can be judged.
+
 ## Out of scope
 
 Self-hosted LangSmith.

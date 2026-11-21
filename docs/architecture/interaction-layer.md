@@ -5,7 +5,7 @@ People deal with the platform through one front door, in four ways (ADR-0016).
 | Interaction | Started by | Example | Handled by |
 | --- | --- | --- | --- |
 | Clarify | Agent | "All order feeds, or only retail?" | Product Manager |
-| Decide | Agent | Approve a plan; extend a budget; resume or terminate a suspended agent; choose what to do about an outage | The role that raised it |
+| Decide | Agent | Choose an option; approve the requirement; approve a plan; extend a budget; resume or terminate a suspended agent; choose what to do about an outage | The role that raised it |
 | Inform | Either | Status, cost so far, what is blocked, "why did you conclude this?" | Answered from audit and ledger |
 | Steer or stop | Human | Change scope, reprioritise, pause, cancel | Product Manager for scope; kill switch for stop |
 
@@ -30,8 +30,9 @@ Every request for a decision carries the same seven fields:
 - **Timeouts.** Each gate has a deadline and a safe default. A timeout never resolves to "approved".
 - **Tiered approvals.** Low-risk decisions may be batched into a digest or delegated to a named
   deputy. High-risk decisions always go to the named approver.
-- **Change control.** A scope change mid-run goes to the Product Manager, which states the
-  effect on cost and time. After approval, only affected workstreams are re-planned.
+- **Change control.** A change after the requirement is approved is a change request. The
+  Product Manager states the effect on cost and time. After approval a new baseline version is
+  issued and only affected work is re-planned (ADR-0028).
 - **Feedback.** Every approval, rejection and comment is stored against the run and feeds the
   evaluation datasets.
 

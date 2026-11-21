@@ -8,6 +8,12 @@ This repository is the working record between the **architect** and the **implem
 Requirements, architecture, decisions and the plan live here. Implementation is done on another
 machine and arrives as pull requests.
 
+## Lifecycle
+
+Request, ideation, refinement, clarification, consultation, requirement approval, then plan,
+design, build, test, review and acceptance. See
+[docs/architecture/delivery-lifecycle.md](docs/architecture/delivery-lifecycle.md).
+
 ## Status (21 November 2026)
 
 | Area | State |
