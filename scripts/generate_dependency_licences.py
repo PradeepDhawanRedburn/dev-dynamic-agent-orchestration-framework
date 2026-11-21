@@ -23,6 +23,8 @@ PROJECT = "orchestrator"
 # Locked for other platforms, so not installed where this script runs. Read by hand.
 NOT_INSTALLED_LICENCES = {
     "httpx2-jsfetch": ("BSD-3-Clause", "PyPI metadata, read 2026-11-21; only used on Emscripten"),
+    "colorama": ("BSD License", "PyPI classifier, read 2026-11-21; only used on Windows"),
+    "tzdata": ("Apache-2.0", "PyPI metadata, read 2026-11-21; only used on Windows"),
 }
 
 
