@@ -17,7 +17,8 @@ a person can choose, answer in their own words, or override, and all of it is on
 - ADR-0008
 - docs/architecture/interaction-layer.md
 - docs/governance/traceability-and-decisions.md
-- docs/plan/spike-findings.md, items S-25 and S-26
+- docs/plan/spike-findings.md, items S-25 and S-26 (both held)
+- ADR-0033, point 24
 
 ## Tasks
 

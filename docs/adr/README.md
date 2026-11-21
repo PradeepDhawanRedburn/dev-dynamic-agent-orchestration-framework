@@ -40,5 +40,6 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0030](0030-reasoning-patterns.md) | Which reasoning patterns the platform uses | Proposed |
 | [0031](0031-questions-without-stopping-the-run.md) | Agents can ask a person a question without stopping the run | Accepted |
 | [0032](0032-human-override.md) | A person can override an agent, with a reason, on the record | Accepted |
+| [0033](0033-decisions-from-the-architecture-spike.md) | Decisions from the architecture spike | Accepted |
 
 New ADRs use [template.md](template.md).

@@ -49,10 +49,13 @@ Confidential projects.
 The binding limit is model throughput. Capacity planning and admission control are built around
 tokens per minute per deployment, with a per-sponsor allowance, not around pod count.
 
+## Found in the spike
+
+See ADR-0033. In short: the chat-model class is `AzureAIOpenAIApiChatModel`; the API version must be `v1`; the newer deployments need the Responses API for tools and structured output; the tracer gives a connected trace but carries no custom identifiers and has no masking.
+
 ## Not verified
 
-- The chat-model class in `langchain-azure-ai` for Foundry deployments. The draft in
-  `reference/lg/app.py` still uses `AzureChatOpenAI` and a LangSmith tracer.
+- Managed-identity authentication to Foundry, Entra authentication to PostgreSQL, and export of traces to Application Insights. Each needs an Azure resource (H-28).
 - How Foundry's evaluation features compare with LangSmith's.
 - Which web-search service to use for research. Queries leave the network whichever is chosen,
   so it is an item for the security review.

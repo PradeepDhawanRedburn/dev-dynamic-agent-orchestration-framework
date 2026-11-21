@@ -30,6 +30,13 @@ Every run is traceable in Application Insights, and prompt or model changes are 
 - [ ] Changing a prompt in `agents/` without passing the evaluation job cannot be merged.
 - [ ] The adversarial set shows no case reaching a tool outside its grant.
 
+## Added by ADR-0033
+
+- Settle how the platform's identifiers reach spans (point 13), with a test. If it cannot be done with the Foundry tracer, say so in an issue before using plain OpenTelemetry.
+- Content recording off by default, on per run by classification (point 15).
+- Test export to Application Insights, which the spike could not (needs H-28).
+- Move `langchain-azure-ai[opentelemetry]` to the runtime dependencies.
+
 ## Added by ADR-0029
 
 - Put every identifier in `docs/governance/traceability-and-decisions.md` on every span and audit event.

@@ -31,7 +31,7 @@ cd reference && python3 -m pytest -q        # 52 passed on Python 3.13, Pydantic
 | File | What it is |
 | --- | --- |
 | `lg/state.py`, `lg/worker.py`, `lg/lead.py`, `lg/supervisor.py` | Graph state, worker and tool gateway, Lead subgraph, supervisor |
-| `lg/app.py` | Composition root. Still uses `AzureChatOpenAI` and a LangSmith tracer; ADR-0014 replaces both |
+| `lg/app.py` | **Deleted.** It created a LangSmith client when imported, which makes a network call (issue 8, ADR-0033). The composition root is written in WP-05 from the ADRs |
 | `lg/stubs/` | A minimal stand-in for LangGraph and LangChain. It is not those libraries and proves nothing about them |
 | `lg/dryrun.py` | Runs the node logic end to end through the stand-in with scripted models |
 

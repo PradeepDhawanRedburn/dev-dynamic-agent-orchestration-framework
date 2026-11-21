@@ -74,6 +74,7 @@ Every model and tool call runs through one routine (ADR-0015). Reference: `refer
 | Throttled (429) | Retry twice honouring retry-after; switch deployment | Human decides |
 | Credential expired (401, 403) | Refresh token from managed identity | Human decides |
 | Dependency down (5xx) | Probe; switch; retry | Human decides |
+| Prompt blocked by the provider's content filter | None. Never retried; recorded as a guardrail event | Task fails to its Lead |
 | Unknown | None | Human decides |
 
 An agent may not restart services, change configuration, or use an endpoint that is not on the
