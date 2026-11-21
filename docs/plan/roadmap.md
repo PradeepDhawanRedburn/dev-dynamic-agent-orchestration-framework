@@ -15,6 +15,8 @@ on this team's velocity. Re-estimate after phase 1.
 | 4. Standard tier and platform | WP-11 to WP-12 | 8 to 10 weeks | Do multi-domain assignments work on production-shaped infrastructure? |
 | 5. Hardening and rollout | To be planned after phase 3 | Not estimated | Will security, risk and operations sign it off? |
 
+Added later, not in the phases above: WP-14 (questions without stopping the run, and human override), suggested straight after WP-09; and WP-13 (reasoning patterns), last. Neither is estimated.
+
 ```mermaid
 flowchart LR
   WP00[WP-00 Bootstrap] --> WP01[WP-01 Spike]

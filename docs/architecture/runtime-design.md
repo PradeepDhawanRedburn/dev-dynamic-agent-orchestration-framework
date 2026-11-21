@@ -90,6 +90,7 @@ State holds references; bodies are read from the stores.
 | Recruitment rounds per workstream | 2 | Gap reported |
 | Refinement rounds in discovery | 3 | Run ends as not confirmed |
 | Sponsor rework cycles | 2 | Run ends with the last deliverable |
+| Questions per task (WP-14) | 2 | Further questions refused; the agent proceeds on a stated assumption or reports a gap |
 
 Counters live in state. A `recursion_limit` is a final backstop.
 
@@ -117,6 +118,10 @@ not pause themselves (ADR-0016).
 | Guardrail suspension | Security owner | Agent terminated |
 | Incident: runbook exhausted | Sponsor | Task cancelled |
 | Accept result | Sponsor | Result stays pending; agents are retired regardless |
+
+Questions from agents are not gates. They go to a question store outside graph state; a waiting
+task is parked with its dependants while other work continues, and scheduling nodes pick up
+answers at safe points (ADR-0031, built in WP-14).
 
 Pull requests have no gate in the graph: the executor opens them and people review and merge in GitHub (ADR-0021).
 
