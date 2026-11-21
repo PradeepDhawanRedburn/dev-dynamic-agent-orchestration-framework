@@ -1,14 +1,14 @@
 # Local development PostgreSQL only. Production uses Azure Database for PostgreSQL (ADR-0003, ADR-0014).
-# The password is never stored here: export POSTGRES_PASSWORD in your shell before `docker compose up`.
+# Start it with `python scripts/dev_db.py up`, which creates a git-ignored .env holding a random password.
 services:
   postgres:
     image: postgres:17-alpine@sha256:526f86d93c6ea08fd3f1fe5605650cacc781b2c6013169a0ad8f42c7d3d84f32
     environment:
       POSTGRES_USER: orchestrator
       POSTGRES_DB: orchestrator
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?export POSTGRES_PASSWORD before starting}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run scripts/dev_db.py up (it creates .env)}
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - orchestrator-pgdata:/var/lib/postgresql/data
     healthcheck:

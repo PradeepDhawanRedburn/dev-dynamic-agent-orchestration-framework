@@ -75,17 +75,20 @@ python3 scripts/check_agents.py
 uv run pytest tests/spike        # architecture spike; needs Docker for PostgreSQL
 ```
 
-For a local PostgreSQL that persists between runs (production uses Azure Database for PostgreSQL):
+The application needs a PostgreSQL on every developer machine, not only for tests. Start one with a single
+command (needs Docker; production uses Azure Database for PostgreSQL):
 
 ```bash
-export POSTGRES_PASSWORD=...     # choose one; it is never stored in the repository
-docker compose up -d --wait
-# DSN: postgresql://orchestrator:$POSTGRES_PASSWORD@127.0.0.1:5432/orchestrator
-docker compose down              # add -v to delete the data
+python scripts/dev_db.py up      # creates a git-ignored .env with a random password, starts PostgreSQL, waits until healthy
+python scripts/dev_db.py down    # stop, keep the data
+python scripts/dev_db.py reset   # stop and delete the data
 ```
 
-The spike tests start a throwaway PostgreSQL container by default. To use the compose database instead, set
-`SPIKE_POSTGRES_DSN` to its DSN; the tests create and use their own databases on it. Tests marked `foundry`
+It listens on `127.0.0.1:5432` only (change `POSTGRES_PORT` in `.env` if the port is taken). The application reads
+`DATABASE_URL` from `.env`; `.env.example` shows the variables and `.env` is never committed.
+
+The spike tests start their own throwaway PostgreSQL container by default. To run them on the local database
+instead, set `SPIKE_POSTGRES_DSN` to the value of `DATABASE_URL`; they create their own databases on it. Tests marked `foundry`
 are skipped, with the reason shown, unless `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` are set in your
 shell; never put them in a file in the repository. No LangSmith or LangChain tracing variable may be set.
 
