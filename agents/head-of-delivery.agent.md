@@ -9,6 +9,7 @@ tiers: standard, major
 reports_to: Product Manager for scope; human sponsor for the plan
 output_schemas: PlanDraft, ConsolidationDraft, DeliverableDraft
 tools: none
+skills: none
 metric: Conflicts and gaps found at consolidation per assignment; rework rounds
 ---
 # Head of Delivery

@@ -7,7 +7,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent / "agents"
 KEYS = ["name", "title", "function", "version", "status", "model_key", "tiers",
-        "reports_to", "output_schemas", "tools", "metric"]
+        "reports_to", "output_schemas", "tools", "skills", "metric"]
 SECTIONS = ["Purpose", "System prompt", "Inputs", "May", "May not", "Escalates when",
             "Done by code, not by this agent"]
 FUNCTIONS = {"Define", "Deliver", "Assure", "Control", "Learn"}
@@ -16,6 +16,10 @@ EXPECTED = {"product-manager", "cto-agent", "head-of-delivery", "lead", "tester"
             "solution-architect", "ai-specialist"}
 PROFILED = {"lead", "tester", "guardrail-manager"}
 MAX_PROMPT_CHARS = 6000
+MAX_SKILL_CHARS = 2500
+TOOLS = {"org_memory_read", "org_memory_search", "deliverables_read", "results_read",
+         "evidence_read", "source_refetch", "sandbox_test_run", "audit_read", "ledger_read",
+         "plan_read", "registry_read", "model_catalogue_read"}
 
 
 def front_matter(text: str) -> tuple[list[str], dict[str, str], str]:
@@ -56,6 +60,24 @@ def check(path: pathlib.Path) -> list[str]:
         errors.append(f"output schemas differ: prompt names {sorted(named)}, front matter {sorted(declared)}")
     if len(prompt) > MAX_PROMPT_CHARS:
         errors.append(f"prompt is {len(prompt)} characters; limit {MAX_PROMPT_CHARS}")
+    for tool in [t.strip() for t in meta.get("tools", "").split(",")]:
+        if tool != "none" and tool not in TOOLS:
+            errors.append(f"tool '{tool}' is not in docs/architecture/tool-catalogue.md")
+    for skill in [s.strip() for s in meta.get("skills", "").split(",")]:
+        if skill == "none":
+            continue
+        skill_file = ROOT / "skills" / f"{skill}.md"
+        if not skill_file.exists():
+            errors.append(f"skill '{skill}' has no file in agents/skills/")
+            continue
+        _, smeta, sbody = front_matter(skill_file.read_text())
+        if meta.get("name") not in [u.strip() for u in smeta.get("used_by", "").split(",")]:
+            errors.append(f"skill '{skill}' does not list this role in used_by")
+        text = re.search(r"## Skill text\n\n```text\n(.*?)\n```", sbody, re.S)
+        if not text:
+            errors.append(f"skill '{skill}' needs a Skill text ```text block")
+        elif len(text.group(1)) > MAX_SKILL_CHARS:
+            errors.append(f"skill '{skill}' is over {MAX_SKILL_CHARS} characters")
     return errors
 
 

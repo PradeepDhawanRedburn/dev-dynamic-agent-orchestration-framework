@@ -9,6 +9,7 @@ tiers: small, standard, major
 reports_to: Head of Delivery; in Small assignments, the Product Manager
 output_schemas: TaskDrafts, RequestDrafts, ReviewDrafts, WorkstreamSummary
 tools: org_memory_read
+skills: none
 metric: First-time acceptance rate of its specialists' results; cost per accepted task
 ---
 # Lead

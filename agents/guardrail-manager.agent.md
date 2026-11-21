@@ -9,6 +9,7 @@ tiers: all; one per Lead profile; judgement only when the rules flag something
 reports_to: Its Lead day to day; escalates directly to the human security owner (ADR-0010)
 output_schemas: GuardrailJudgements
 tools: audit_read
+skills: guardrail-judgement, security-and-data-policy
 metric: Suspensions upheld by the human against suspensions reversed
 ---
 # Guardrail Manager

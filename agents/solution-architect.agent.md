@@ -8,7 +8,8 @@ model_key: reasoning-standard
 tiers: standard, major
 reports_to: Head of Delivery
 output_schemas: SolutionDesignDraft, DesignConformance
-tools: org_memory_read
+tools: org_memory_read, org_memory_search
+skills: solution-design, engineering-principles, azure-reference-architecture
 metric: Contradictions between workstreams found at consolidation, compared with assignments run without a design
 ---
 # Solution Architect

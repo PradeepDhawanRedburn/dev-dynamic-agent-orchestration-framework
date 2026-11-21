@@ -9,6 +9,7 @@ tiers: small, standard, major
 reports_to: Its Lead for scheduling; findings are binding on the Lead
 output_schemas: CheckDrafts, TestDrafts
 tools: evidence_read, source_refetch, sandbox_test_run
+skills: test-design
 metric: Defects caught before acceptance against defects found later by the Reviewer or the sponsor
 ---
 # Tester

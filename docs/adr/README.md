@@ -34,5 +34,6 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0024](0024-retrieval-respects-the-requesting-human-s-access.md) | Retrieval respects the requesting human's access rights | Accepted |
 | [0025](0025-agent-definitions-are-versioned-files.md) | Permanent agents are defined in versioned files | Accepted |
 | [0026](0026-solution-architect-and-ai-specialist.md) | Add a Solution Architect and an AI Specialist | Accepted |
+| [0027](0027-role-skills-and-tool-catalogue.md) | Permanent agents have role skills and a tool catalogue | Proposed |
 
 New ADRs use [template.md](template.md).

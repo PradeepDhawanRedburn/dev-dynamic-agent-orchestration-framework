@@ -5,14 +5,11 @@
 | Decision | State | ADR | Blocks |
 | --- | --- | --- | --- |
 | Earned autonomy: may measured quality later relax a human gate | Deferred by the owner on 21 November 2026 | [ADR-0023](../adr/0023-earned-autonomy.md) | Nothing in the first release |
+| Role skills and a tool catalogue for permanent agents | Proposed by the architect | [ADR-0027](../adr/0027-role-skills-and-tool-catalogue.md) | WP-03 |
 
 ## Needed from the owner, though not architecture decisions
 
-- The real engineering standards for the four DevOps skill packs, and an owner for each pack.
-- Named human sponsor, deputy and security owner for the proof of concept.
-- The allow-list of repositories in which the platform may open pull requests (ADR-0021).
-- Budget ceilings per size tier.
-- Retention periods, from records management.
+Sixteen actions, each with an owner role and how to do it: [human-actions.md](../plan/human-actions.md).
 
 ## Decided on 21 November 2026
 

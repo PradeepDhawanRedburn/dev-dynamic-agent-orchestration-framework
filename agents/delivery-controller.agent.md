@@ -9,6 +9,7 @@ tiers: all
 reports_to: Human sponsor
 output_schemas: StatusNarrative
 tools: ledger_read, plan_read
+skills: none
 metric: Forecast accuracy on cost and time
 ---
 # Delivery Controller

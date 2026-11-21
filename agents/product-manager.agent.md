@@ -9,6 +9,7 @@ tiers: small, standard, major
 reports_to: Human sponsor, through the interaction layer
 output_schemas: RequirementDraft, ClarifyingQuestions, AcceptanceCheck
 tools: none
+skills: requirement-framing
 metric: Deliverables accepted without scope dispute; share reported as used a month later
 ---
 # Product Manager

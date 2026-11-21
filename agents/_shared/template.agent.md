@@ -9,6 +9,7 @@ tiers: small, standard, major
 reports_to: Who this role answers to
 output_schemas: SchemaOne, SchemaTwo
 tools: none
+skills: none
 metric: The number that shows this role is earning its place
 ---
 # Role Title

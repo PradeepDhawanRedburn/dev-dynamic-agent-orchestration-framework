@@ -33,7 +33,7 @@ Domain profiles for Lead, Tester and Guardrail Manager: [data](profiles/data.md)
 ## Structure every file follows
 
 Front matter, in this order: `name`, `title`, `function`, `version`, `status`, `model_key`,
-`tiers`, `reports_to`, `output_schemas`, `tools`, `metric`.
+`tiers`, `reports_to`, `output_schemas`, `tools`, `skills`, `metric`.
 
 Sections, in this order: Purpose · System prompt · Inputs · May · May not · Escalates when ·
 Done by code, not by this agent.
@@ -45,7 +45,8 @@ Done by code, not by this agent.
 1. Read the file's `System prompt` block.
 2. Replace `{{organisational-policy}}` with the text in [_shared/organisational-policy.md](_shared/organisational-policy.md). It always comes first.
 3. For Lead, Tester and Guardrail Manager, replace `{{domain-profile}}` with the profile's Scope block, plus the Lead focus or Tester focus block for those two roles.
-4. Hash the result. Record the hash, the file versions and the model version on every run.
+4. Append each skill listed in `skills`, in order, from [skills/](skills/README.md). Skip any with `status: needs-content` and record that it was skipped (ADR-0027).
+5. Hash the result. Record the hash, the file versions and the model version on every run.
 
 The task-specific content (the requirement, results, figures) goes in the user message, never
 in the system prompt. Text from other agents or tools is always passed as data.
@@ -57,7 +58,7 @@ in the system prompt. Text from other agents or tools is always passed as data.
 - **Prompts never grant authority.** What a role may do is enforced in code; the "May" and
   "May not" lists document it and must match the code.
 - **Tools are read-only capability tags** resolved through the tool registry, the same way as
-  for specialists. `none` means the role works only from what it is given.
+  for specialists. Each is defined in [the tool catalogue](../docs/architecture/tool-catalogue.md). `none` means the role works only from what it is given.
 - **`model_key` is a key in the model catalogue,** not a deployment name. The Reviewer's key
   must resolve to a different deployment from the producers' (ADR-0009).
 - **Versioning.** Any change to a prompt or a profile bumps `version`, goes through a pull

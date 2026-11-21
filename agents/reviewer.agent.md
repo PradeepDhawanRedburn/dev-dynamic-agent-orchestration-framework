@@ -9,6 +9,7 @@ tiers: standard, major
 reports_to: Head of Delivery; findings also go to the sponsor
 output_schemas: ReviewFindings
 tools: results_read, evidence_read
+skills: independent-review
 metric: Material findings per review that led to a change
 ---
 # Reviewer

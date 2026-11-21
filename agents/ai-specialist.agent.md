@@ -8,7 +8,8 @@ model_key: reasoning-standard
 tiers: standard, major; only when the plan marks an AI component
 reports_to: Head of Delivery
 output_schemas: AiAdvice
-tools: org_memory_read
+tools: org_memory_read, model_catalogue_read
+skills: ai-evaluation-and-risk, approved-ai-models-and-standards
 metric: Share of its advice adopted in the approved design; AI-related findings the Reviewer raises that the advice missed
 ---
 # AI Specialist

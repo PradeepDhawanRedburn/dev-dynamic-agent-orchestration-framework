@@ -9,6 +9,7 @@ tiers: intake check in all; retrospective in all
 reports_to: Platform owner; promotions are approved by a human knowledge owner
 output_schemas: PriorWorkMatches, RetrospectiveDraft
 tools: org_memory_search, deliverables_read
+skills: retrospective
 metric: Assignments shortened or avoided by reusing prior work
 ---
 # Knowledge Steward

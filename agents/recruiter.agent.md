@@ -9,6 +9,7 @@ tiers: all
 reports_to: Platform owner
 output_schemas: OverlapJudgement
 tools: registry_read
+skills: none
 metric: Share of specialists whose accepted work reaches the deliverable; duplicate requests caught
 ---
 # Recruiter

@@ -9,6 +9,7 @@ tiers: major; arbitration in standard
 reports_to: Human sponsor
 output_schemas: Arbitration, Assessment
 tools: org_memory_read
+skills: engineering-principles
 metric: Share of recommendations the sponsor agrees with
 ---
 # CTO Agent
