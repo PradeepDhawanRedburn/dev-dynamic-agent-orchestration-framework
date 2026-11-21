@@ -1,9 +1,107 @@
 # Spike findings
 
-Filled in by WP-01. One row per item in [spike-checklist.md](spike-checklist.md).
+Filled in by WP-01. One row per item in [spike-checklist.md](spike-checklist.md). Run on 21 November 2026.
 
-Library versions used: _to be recorded_
+## Versions and environment
 
-| # | Result (holds / does not hold / partly) | What was run | Evidence (link to test or script) | Action needed |
+| Item | Value |
+| --- | --- |
+| Python | 3.13.7 (Windows 11 host; CI runs 3.13 on Linux) |
+| langgraph / langgraph-checkpoint / langgraph-checkpoint-postgres / langgraph-prebuilt | 1.2.24 / 4.3.2 / 3.2.1 / 1.1.3 |
+| langchain / langchain-core / langchain-openai | 1.5.2 / 1.8.4 / 1.8.5 |
+| langchain-azure-ai | 1.2.3 (tracer needs the `opentelemetry` extra; see S-13) |
+| langsmith | 0.16.0 (a dependency of langchain; never configured) |
+| psycopg / psycopg-binary | 3.3.9 |
+| pydantic / pycryptodome / opentelemetry-sdk / openai | 2.14.4 / 4.5.0 / 1.45.2 / 3.57.0 |
+| PostgreSQL | 17 (alpine), throwaway Docker container, image pinned by digest |
+| Model service | One Microsoft Foundry resource, API-key authentication. Only the `gpt-5-mini` deployment exists (see S-12) |
+
+Every spike test is under `tests/spike/`. Run them all with `uv run pytest tests/spike`. Tests that need Foundry
+are marked `foundry` and are skipped, with the reason shown, when `AZURE_OPENAI_ENDPOINT` and
+`AZURE_OPENAI_API_KEY` are not set. No LangSmith or LangChain tracing variable was set at any time.
+
+## Results
+
+| # | Result (holds / does not hold / partly) | What was run | Evidence | Action needed |
 | --- | --- | --- | --- | --- |
-| S-01 | | | | |
+| S-01 | **Holds** | `StateGraph(State, input_schema=..., output_schema=...)` as a subgraph, fanned out twice with `Send`. With `output_schema` only `results` returns. Without it, two parallel branches that both return a shared non-reducer key raise `InvalidUpdateError`. | `tests/spike/test_graph_subgraphs.py` (`test_s01_*`) | Every subgraph run under `Send` needs an `output_schema`. |
+| S-02 | **Holds** | A subgraph that itself fans out with `Send`, itself fanned out with `Send`: four leaf results aggregated. | `test_graph_subgraphs.py::test_s02_*` | None. |
+| S-03 | **Holds** | `add_node(..., error_handler=h)` with `h(payload, error: NodeError) -> Command`. The first argument is the `Send` payload; `error.node` and `error.error` identify the failure; returning `Command(update=...)` lets the run continue. | `tests/spike/test_graph_errors.py::test_s03_*` | None. |
+| S-04 | **Holds** | `Send(node, arg, timeout=TimeoutPolicy(run_timeout=0.3))` on a node that sleeps 5 s. | `test_graph_errors.py::test_s04_*` | Without an error handler the timeout raises `NodeTimeoutError` out of `ainvoke` and fails the whole run; with one, the slow branch is recovered while the fast one keeps its result. Async nodes only (sync nodes cannot be cancelled). |
+| S-05 | **Holds** | A supervisor fans out two workstreams; one returns `decision_needed`; a gate node calls `interrupt()` once with all open questions; on `Command(resume=...)` only that workstream is sent again (A ran once, B twice). Also tried: two parallel branches that each call `interrupt()`. | `tests/spike/test_graph_interrupts.py::test_s05_*` | The invoke result carries `__interrupt__`. If branches did interrupt, both are listed with ids and resume takes `Command(resume={interrupt_id: value})`. |
+| S-06 | **Holds** | A node that appends to a list before and after `interrupt()`: lines are `before`, then on resume `before`, `after`. | `test_graph_interrupts.py::test_s06_*` | None. |
+| S-07 | **Holds, with conditions** | A fan-out of three async branches on `AsyncPostgresSaver` in a child process; branches a and b finish, c hangs; the process is killed (Windows `TerminateProcess`), restarted, and resumed with `ainvoke(None, config)`. Only c ran again, with `durability` `sync` and `async` (the default is `async`), after a 2 s settle and with the kill immediately after the branches finished (one trial each). With `durability="exit"` nothing was saved: resuming raises `EmptyInputError`, and re-running from the input runs every branch again. | `tests/spike/test_kill_restart.py`, `kill_restart_child.py` | Idempotent nodes are still required: a kill between a node returning and its write being stored is not protected, and the immediate-kill result is one trial per mode, not a guarantee. Never use `exit` durability. |
+| S-08 | **Partly** | `AsyncPostgresSaver.from_conn_string` and `setup()` against local PostgreSQL 17: tables are created and a second `setup()` is harmless. **Entra authentication against Azure Database for PostgreSQL: could not test.** | `test_checkpointer_postgres.py::test_s08_*` (the Entra test is a visible skip) | **Needs:** an Azure Database for PostgreSQL Flexible Server with Entra authentication enabled, and an identity that can sign in to it. Note: the migrations use `CREATE INDEX CONCURRENTLY`, so the connection must be `autocommit=True`. psycopg's async mode needs a selector event loop on Windows. |
+| S-09 | **Holds** | `create_agent(model, response_format=ToolStrategy(SpecialistOutput))`, with a schema copied from `reference/contracts.py`. Scripted model: 3 and 60 claims give a validated `SpecialistOutput`; invalid output is returned to the model once and corrected; `handle_errors=False` raises `StructuredOutputValidationError`. **Real `gpt-5-mini`:** a validated `SpecialistOutput` on the chat completions API and on the Responses API, one model call each. | `test_langchain_agents.py::test_s09_*`, `test_foundry.py::test_s09_real_*` | The validation error reaches the model as a `ToolMessage` whose status is still `success` (see issue #6). |
+| S-10 | **Holds** | `abefore_model` and `aafter_model` run under `ainvoke`, in list order, and after hooks in reverse. Raising from `abefore_model` stops the agent before any model call; raising from `aafter_model` stops it after one; both propagate. The documented `@hook_config(can_jump_to=["end"])` with `jump_to: "end"` stops without an exception. | `test_langchain_agents.py::test_s10_*` | Two instances of one middleware class need distinct `name` properties. |
+| S-11 | **Holds** | Real `gpt-5-mini` through `langchain-azure-ai`. `usage_metadata` has `input_tokens`, `output_tokens` and `total_tokens` on both APIs, plus `output_token_details.reasoning`. | `test_foundry.py::test_s11_*` | Reasoning tokens are inside `output_tokens` and dominate small calls (see measurements). |
+| S-12 | **Partly** — [#5](https://github.com/PradeepDhawanRedburn/dev-dynamic-agent-orchestration-framework/issues/5) | `AzureAIOpenAIApiChatModel` (a subclass of `ChatOpenAI`) reaches the resource with an API key on both APIs. Dated `api_version` values, including the one in the class docstring and the user's `AZURE_OPENAI_API_VERSION=2024-10-21`, return `400 API version not supported`; `v1` and `preview` work. The class reads that environment variable itself. Deployments `gpt-5` and `gpt-5.5` return 404. **Managed identity: could not test.** | `test_foundry.py::test_s12_*` | **Needs:** a principal (or managed identity) with access to the resource, and the real names of the second and third deployments (ADR-0009 needs a second, different model). |
+| S-13 | **Partly** | `AzureAIOpenTelemetryTracer` on a graph with a subgraph, an agent and a model call gives one connected trace of seven spans. **Export to Application Insights: could not test.** The tracer needs `langchain-azure-ai[opentelemetry]`, which the base install lacks. | `tests/spike/test_tracing.py::test_s13_*` | **Needs:** the Application Insights connection string (or the Foundry project that supplies it). Decide whether the extra goes in the runtime dependencies. |
+| S-14 | **Holds** | Six async `Send` branches: `max_concurrency=2` gives a peak of 2; no limit gives 6. | `test_graph_errors.py::test_s14_*` | None. |
+| S-15 | **Holds** | One compiled subgraph mounted as `first` and `second`, each interrupting: stream namespaces are `first:<id>` and `second:<id>`, and each instance keeps its own state. | `test_graph_subgraphs.py::test_s15_*` | None. |
+| S-16 | **Holds** | `with_structured_output(schema, include_raw=True)` returns `raw`, `parsed` and `parsing_error`; for invalid output `parsed` is `None` and `parsing_error` is set. Scripted model, and real `gpt-5-mini` on both APIs. | `test_langchain_agents.py::test_s16_*`, `test_foundry.py::test_s16_*` | None. |
+| S-17 | **Partly** — [#4](https://github.com/PradeepDhawanRedburn/dev-dynamic-agent-orchestration-framework/issues/4) | `EncryptedSerializer.from_pycryptodome_aes()` works with `PostgresSaver(conn, serde=...)`; blobs are `msgpack+aes`; a wrong key raises `ValueError`. **Strings, numbers, booleans and `None` in state stay in plaintext** inside `checkpoints.checkpoint`. Needs `pycryptodome`. Strict msgpack returns Pydantic objects as plain dicts. | `test_checkpointer_postgres.py::test_s17_*` | The architect decides how to treat the gap (ADR-0029 point 6; ADR-0018 already limits primitives to ids and statuses). |
+| S-18 | **Partly** — [#6](https://github.com/PradeepDhawanRedburn/dev-dynamic-agent-orchestration-framework/issues/6) | All eight allowed middleware exist and compose. Of the forbidden list, `FilesystemMiddleware` and `SubAgentMiddleware` do not exist in langchain 1.5.2; the other six do. List order decides whether a model is retried or replaced. `ToolErrorMiddleware` converts an error only when its handler returns content. | `test_langchain_agents.py::test_s18_*` | Amend the control doc's order and `ToolErrorMiddleware` wording; WP-03's absence test should match class names. |
+| S-19 | **Holds** | `PIIMiddleware` with a regex string and with a callable returning `PIIMatch` dicts for a custom type; `redact`, `hash` and `block` behave as documented. | `test_langchain_agents.py::test_s19_*` | Input only by default: set `apply_to_output` and `apply_to_tool_results` deliberately. |
+| S-20 | **Holds** | `graph.get_graph().draw_mermaid()` returns Mermaid text; `get_graph(xray=True)` includes subgraph nodes. | `test_graph_subgraphs.py::test_s20_*` | None. |
+| S-21 | **Does not hold** — [#3](https://github.com/PradeepDhawanRedburn/dev-dynamic-agent-orchestration-framework/issues/3) | Arbitrary metadata keys (`project_id`, `task_id`) reach no span. Only `gen_ai.*` keys and a few mapped ones do, on agent spans only. `enable_content_recording=False` removes all message content; the default records it; there is no masking. | `test_tracing.py::test_s21_*` | The architect chooses how identifiers reach spans and how masking is done. |
+| S-22 | **Holds** | While paused, `get_state` gives `next`, `interrupts` and the `checkpoint_id`; `get_state_history` later returns that checkpoint with values, `created_at`, `parent_config` and `metadata`. The same on `PostgresSaver`, across a new connection, resuming from the new connection. | `test_graph_interrupts.py::test_s22_*`, `test_checkpointer_postgres.py::test_s22_*` | None. |
+| S-23 | **Partly** | Microsoft's content-filter documentation read (see below). On the `gpt-5-mini` deployment the default filter annotates all four harm categories and `jailbreak` on the prompt, and protected-material text and code on the output. The documentation's own prompt-attack example is blocked with `400 content_filter` (`jailbreak` detected and filtered); langchain raises a non-retryable `OpenAIInvalidRequestError`. | `test_foundry.py::test_s23_*` | Not tested: indirect attacks (need document delimiters), configuring filters, other deployments. A blocked prompt must be handled as a refusal-like failure and never retried. |
+| S-24 | **Does not hold** (in part) — [#2](https://github.com/PradeepDhawanRedburn/dev-dynamic-agent-orchestration-framework/issues/2), [#8](https://github.com/PradeepDhawanRedburn/dev-dynamic-agent-orchestration-framework/issues/8) | With no variable set, a graph, an agent and an unmarked pytest test make no network attempt (socket guard, with a positive control). A test marked `@pytest.mark.langsmith` tries to reach `api.smith.langchain.com`. Constructing `langsmith.Client` calls `GET /info`. | `test_langsmith_silence.py`, `langsmith_silence_probe.py`; `tests/unit/test_no_tracing_env.py` guards the environment and the marker | ADR-0029 and the control matrix say S-24 confirms silence by default; that holds except for the marker. |
+
+### S-23 sources
+
+Read 21 November 2026: [Content filtering for Microsoft Foundry Models](https://learn.microsoft.com/en-us/azure/foundry-classic/foundry-models/concepts/content-filter)
+(the old `ai-foundry/openai/concepts/content-filter` address redirects there; the page is labelled for the classic portal).
+It lists four harm categories at safe, low, medium and high; optional jailbreak (prompt shields), indirect-attack, protected-material,
+groundedness (streaming only, limited regions) and PII detection; annotate-only or block per filter; and says turning filters off needs an approved use case.
+
+## Also in the spike
+
+| Item | Result |
+| --- | --- |
+| Checkpoint size and write latency, ten-task workstream, state by reference | `tests/spike/test_measure_checkpoints.py`, local PostgreSQL 17 in Docker on a Windows laptop, 8 runs each. State by reference (ids and statuses): 4 checkpoints and 12 `put_writes` calls per run, about 5 KB stored per run. The same workstream holding a 20 KB result body per task: about 405 KB. Median `put` 15 to 30 ms and `put_writes` 38 to 53 ms; p95 `put` 50 to 100 ms; whole run 85 to 180 ms. The latency varied between two runs of the same test, and it says nothing about Azure Database for PostgreSQL over the network. Size is the useful number. |
+| Model calls and cost per role for one Small assignment | **Could not test for cost.** It needs the real prompts, tools and roles (WP-03 onwards). Calls only, from the reference scenario run with the real `create_agent` and a scripted model (three workstreams, no Product Manager, Reviewer or Knowledge Steward, which the draft predates): 25 model calls. By role: CTO 2, Head of Development 4, three Leads 3, 3 and 2, three Testers 1 each, four specialists 2 each. One real structured-output call from a specialist on `gpt-5-mini` used about 235 to 320 input and about 2,000 output tokens (about 900 to 1,000 of them reasoning), so cost per call is dominated by reasoning. |
+| Which sandbox approach the platform team will support | **Could not test.** A decision for the platform team; nothing for code to measure. |
+| Mapping to the firm's model-risk, outsourcing, records and operational-resilience policies | **Not started.** It needs risk and compliance, who are people (H-18, H-21). |
+
+## Reference code on real LangGraph
+
+`reference/lg/` was copied to a scratch folder (never imported from `reference/`) and run on the pinned libraries, with every
+non-loopback connection refused. Tests: `tests/spike/test_reference_lg.py`, driver `tests/spike/reference_run/driver.py`.
+
+| What | Result |
+| --- | --- |
+| Import of every module | Works for `contracts`, `budget`, `recruiter`, `tool_registry`, `guardrails`, `resilience`, `state`, `worker`, `lead`, `supervisor`. |
+| `app.py` | **Not run on purpose.** Importing it creates a LangSmith client and reached out to `api.smith.langchain.com` once (see Incident). Issue [#8](https://github.com/PradeepDhawanRedburn/dev-dynamic-agent-orchestration-framework/issues/8). It also still uses `AzureChatOpenAI` and a LangSmith tracer (ADR-0014). |
+| Build and compile the Lead and supervisor graphs | Works. |
+| Whole scenario, real graph runtime, permanent agents scripted, specialists' agent loop a stand-in | Finishes `approved` through three gates (plan, guardrail, final), with the same figures the architect's stand-in runtime prints: 5 claims, 14 evidence ids, 33 model calls, cost 0.4501, ledger committed 0.1708, revision counts `{data_quality: 2, api: 2, streaming_tests: 2}`, every agent retired, no live credential. The guardrail interrupt is raised inside the Lead subgraph under `Send` (ADR-0016 moves it to the supervisor) and works there. |
+| Same, with the real `create_agent`, the reference governance middleware (`abefore_model`, `aafter_model`), `ToolStrategy(SpecialistOutput)`, the call-limit and retry middleware, and a scripted `BaseChatModel` (so the real `with_structured_output` is exercised) | Finishes `approved`; four specialists go `awaiting_review`, `accepted`, `retired`; metering through `aafter_model` works. Happy path only: the failure paths (suspension, revision, invented citation, tool error) were exercised only in the stand-in run above. |
+| What breaks | (a) `dryrun.py` cannot run unchanged: it needs `la.SCRIPT`, `lt.ANSWERS` and `graph.run` from the stub library. (b) `app.py`, above. (c) A warning: `Deserializing unregistered type contracts.AgentStatus from checkpoint. This will be blocked in a future version`. With `LANGGRAPH_STRICT_MSGPACK=true` it is blocked, the run still finishes and the enum degrades (issue #4). (d) `FakeChat` in `dryrun.py` is not a `BaseChatModel`; only the second run proves the real structured-output path. |
+
+## Carried over from the review of WP-00
+
+| # | Item | Done |
+| --- | --- | --- |
+| 6 | Add the PostgreSQL checkpointer package and its driver, pinned | `langgraph-checkpoint-postgres==3.2.1`, `psycopg[binary]==3.3.9`; re-locked. Dev group also gains `pycryptodome==4.5.0`, `langchain-azure-ai[opentelemetry]==1.2.3` and `opentelemetry-sdk==1.45.2` for S-17 and S-13. The driver is LGPL-3.0: issue [#7](https://github.com/PradeepDhawanRedburn/dev-dynamic-agent-orchestration-framework/issues/7). |
+| 7 | CI on pushes to `main` as well | `ci.yml` now triggers on `push` to `main` and on `pull_request`. |
+| 8 | Licence list generated on Linux; CI fails when stale | `docs/governance/dependency-licences.md` regenerated in a Linux container; the `checks` job regenerates it and runs `git diff --exit-code`. Three packages locked only for other platforms are described by hand in the script (read from PyPI). |
+| 9 | Settle S-24; test that fails if a tracing or endpoint variable is set | S-24 above. `tests/unit/test_no_tracing_env.py` fails on any `LANGSMITH_*` or `LANGCHAIN_*` variable, on tracing being enabled, and on any test using the `langsmith` marker. |
+| 10 | Separate CI job for spike tests; Foundry tests skipped visibly | A `spike` job runs `tests/spike` with no cloud credentials; `-ra` lists each skip and its reason. |
+
+## Could not test, and what is needed
+
+| Row | Needed |
+| --- | --- |
+| S-08 Entra authentication | An Azure Database for PostgreSQL Flexible Server with Entra authentication and an identity that can use it |
+| S-12 managed identity; second and third deployments | A principal with access to the Foundry resource; the real deployment names |
+| S-13 Application Insights export | The Application Insights connection string |
+| Model cost per role | The production prompts and tools (WP-03 onwards) |
+| Sandbox approach; policy mapping | People (platform team; risk and compliance) |
+
+## Incident and deviations
+
+- **An outbound call to LangSmith.** While checking which reference modules import, I imported `reference/lg/app.py` in a scratch copy. It builds a `langsmith.Client` at import, which sent one unauthenticated `GET /info` to `api.smith.langchain.com`. It had no key, prompt, trace or project data and failed on certificate verification behind the corporate proxy. This went against "send nothing to a service outside Azure". I stopped importing it, ran everything afterwards behind a guard that refuses non-loopback connections, and opened issue #8.
+- **The Foundry key was pasted into the session by the owner.** It was kept in a file outside the repository, loaded into the environment only for test runs, and checked absent from the repository before each commit. It should be rotated.
+- **The spike tests are exempt from strict mypy** (`tests.spike.*` has `ignore_errors`), because they probe library behaviour with deliberately loose types. `src/` and `tests/unit` stay strict.
+- **No production code was written.** `src/` is unchanged.

@@ -70,13 +70,18 @@ uv sync --locked                 # create .venv from the lock file
 uv run ruff check src tests
 uv run ruff format --check src tests
 uv run mypy
-uv run pytest
+uv run pytest --ignore=tests/spike
 python3 scripts/check_agents.py
+uv run pytest tests/spike        # architecture spike; needs Docker for PostgreSQL
 ```
 
+The spike tests start a throwaway PostgreSQL container (or use `SPIKE_POSTGRES_DSN`). Tests marked `foundry`
+are skipped, with the reason shown, unless `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` are set in your
+shell; never put them in a file in the repository. No LangSmith or LangChain tracing variable may be set.
+
 Behind a TLS-inspecting proxy, pass `--native-tls` to uv (or set `UV_NATIVE_TLS=1`) so it trusts the
-operating system's certificate store. After changing `uv.lock`, regenerate the licence list with
-`uv run --locked python scripts/generate_dependency_licences.py`.
+operating system's certificate store. After changing `uv.lock`, regenerate the licence list on Linux (CI
+checks it is current): `uv run --locked python scripts/generate_dependency_licences.py`.
 
 ## The design in one paragraph
 
