@@ -17,19 +17,52 @@ class Supervisor(TypedDict):
     outcomes: Annotated[dict[str, Any], merge]
 
 
+class WorkstreamInput(TypedDict):
+    ws: str
+    answer: str | None
+
+
+class WorkstreamState(TypedDict):
+    ws: str
+    answer: str | None
+    scratch: str
+    outcomes: dict[str, Any]
+
+
+class WorkstreamOutput(TypedDict):
+    outcomes: dict[str, Any]
+
+
+def build_workstream(runs: Counter[str]) -> Any:
+    """A compiled child graph: it returns `decision_needed`, it never pauses itself."""
+
+    def think(state: WorkstreamState) -> dict[str, Any]:
+        runs[state["ws"]] += 1
+        return {"scratch": f"notes for {state['ws']}"}  # child-internal; must not reach the parent
+
+    def decide(state: WorkstreamState) -> dict[str, Any]:
+        if state["ws"] == "B" and state["answer"] is None:
+            outcome = {"status": "decision_needed", "question": "which database?"}
+        else:
+            outcome = {"status": "done", "answer": state["answer"]}
+        return {"outcomes": {state["ws"]: outcome}}
+
+    child = StateGraph(
+        WorkstreamState, input_schema=WorkstreamInput, output_schema=WorkstreamOutput
+    )
+    child.add_node("think", think)
+    child.add_node("decide", decide)
+    child.add_edge(START, "think")
+    child.add_edge("think", "decide")
+    child.add_edge("decide", END)
+    return child.compile()
+
+
 def build_supervisor(
     runs: Counter[str], gate_entries: list[str], checkpointer: Any | None = None
 ) -> Any:
     def dispatch(_: Supervisor) -> list[Send]:
         return [Send("workstream", {"ws": ws, "answer": None}) for ws in ("A", "B")]
-
-    def workstream(payload: dict[str, Any]) -> dict[str, Any]:
-        runs[payload["ws"]] += 1
-        if payload["ws"] == "B" and payload["answer"] is None:
-            outcome = {"status": "decision_needed", "question": "which database?"}
-        else:
-            outcome = {"status": "done", "answer": payload["answer"]}
-        return {"outcomes": {payload["ws"]: outcome}}
 
     def gate(state: Supervisor) -> Command[Any]:
         gate_entries.append("entered")
@@ -44,7 +77,7 @@ def build_supervisor(
         )
 
     builder = StateGraph(Supervisor)
-    builder.add_node("workstream", workstream)
+    builder.add_node("workstream", build_workstream(runs))
     builder.add_node("gate", gate, destinations=("workstream", END))
     builder.add_conditional_edges(START, dispatch, ["workstream"])
     builder.add_edge("workstream", "gate")
@@ -68,6 +101,7 @@ def test_s05_supervisor_interrupts_once_and_reruns_only_the_workstream_that_aske
     assert final["outcomes"]["A"] == {"status": "done", "answer": None}
     assert final["outcomes"]["B"] == {"status": "done", "answer": "postgres"}
     assert runs == Counter({"A": 1, "B": 2}), "workstream A must not run again"
+    assert set(final) == {"outcomes"}, "the child's scratch key did not reach the parent"
 
 
 def test_s05_parallel_interrupts_inside_send_branches_are_listed_with_ids() -> None:
