@@ -1,4 +1,4 @@
-"""No code constructs a LangSmith client or turns tracing on (ADR-0013, ADR-0033 point 13).
+"""No code constructs a LangSmith client or turns tracing on (ADR-0014, ADR-0029, ADR-0033 point 22).
 
 Tracing goes through OpenTelemetry to Azure. Nothing under `src/` may import `langsmith`, build a
 `LangChainTracer` or a LangSmith `Client`, or set a LangSmith or LangChain tracing variable. The

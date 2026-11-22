@@ -1,4 +1,4 @@
-"""The middleware list of a built specialist (ADR-0033 points 8 and 12; lang-family-controls).
+"""The middleware list of a built specialist (ADR-0033 points 17 to 21; lang-family-controls).
 
 A specialist may contain only the allow-listed classes, checked by class name, in one fixed order,
 outermost first: budget metering, call limits, PII, model fallback, model retry, model refusal,
@@ -7,7 +7,7 @@ tool retry, tool error. `check_middleware` is the test of that rule and runs on 
 Choices stated here rather than left to defaults:
 
 - Retries are for transient faults only. A prompt the content filter blocks is never retried
-  (ADR-0033 point 10): it is a refusal, and the worker ends the task.
+  (ADR-0033 point 12): it is a refusal, and the worker ends the task.
 - Both retry middlewares raise when they give up, so the failure reaches code that decides.
 - The tool-error handler always returns content naming the exception type, never its message.
 - PII: input is not scanned (the sponsor's request must reach the agent verbatim), model output is

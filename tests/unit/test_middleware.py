@@ -1,4 +1,4 @@
-"""The middleware list of a built specialist (ADR-0033 points 8 and 12; lang-family-controls)."""
+"""The middleware list of a built specialist (ADR-0033 points 17 to 21; lang-family-controls)."""
 
 from typing import Any
 

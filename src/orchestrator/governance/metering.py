@@ -1,4 +1,4 @@
-"""Per-agent usage metering (ADR-0005, ADR-0033 point 12).
+"""Per-agent usage metering (ADR-0005, ADR-0033 points 18 and 21).
 
 The meter counts what a run has spent: tokens and money for each model call, money for each tool
 call, and structured-output validation errors. Code counts them. The tool that reports a
