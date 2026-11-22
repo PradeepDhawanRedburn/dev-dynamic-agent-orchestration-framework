@@ -198,9 +198,6 @@ async def run_specialist(
     """Run one specialist to an outcome. Idempotent where it writes: audit events are the only
     repeat-sensitive writes, and a resumed node only adds to the record."""
     started = time.monotonic()
-    current = (await deps.stores.registry.get(spec.agent_id)).status
-    if current is not AgentStatus.RUNNING:
-        await deps.stores.registry.transition(spec.agent_id, AgentStatus.RUNNING)
 
     async def finish(
         status: OutcomeStatus,
@@ -219,6 +216,14 @@ async def run_specialist(
             result=result,
             error=error,
         )
+
+    current = (await deps.stores.registry.get(spec.agent_id)).status
+    if current is AgentStatus.SUSPENDED:
+        return await finish("suspended", AgentStatus.SUSPENDED, error="suspended")
+    if current is not AgentStatus.RUNNING:
+        if current not in (AgentStatus.ASSIGNED, AgentStatus.REVISION_REQUESTED):
+            return await finish("failed", AgentStatus.FAILED, error=f"not runnable: {current}")
+        await deps.stores.registry.transition(spec.agent_id, AgentStatus.RUNNING)
 
     try:
         agent, _ = await build_specialist(deps, spec)

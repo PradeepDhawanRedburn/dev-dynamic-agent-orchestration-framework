@@ -46,7 +46,11 @@ def catalogue() -> ModelCatalogue:
 def test_the_shipped_catalogue_carries_every_field_adr_0033_names(
     catalogue: ModelCatalogue,
 ) -> None:
-    assert set(catalogue.entries) >= {"reasoning-small", "reasoning-standard", "reasoning-alternate"}
+    assert set(catalogue.entries) >= {
+        "reasoning-small",
+        "reasoning-standard",
+        "reasoning-alternate",
+    }
     for entry in catalogue.entries.values():
         assert entry.deployment
         assert entry.api in ("chat_completions", "responses")

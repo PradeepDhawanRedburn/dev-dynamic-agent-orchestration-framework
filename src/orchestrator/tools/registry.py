@@ -32,7 +32,8 @@ class ToolDefinition(Contract):
 class ToolImpl(Protocol):
     """A reviewed implementation. `args_model` is the Pydantic model for its input."""
 
-    args_model: type[BaseModel]
+    @property
+    def args_model(self) -> type[BaseModel]: ...
 
     async def run(self, args: dict[str, Any], ctx: dict[str, Any]) -> dict[str, Any]: ...
 

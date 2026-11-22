@@ -141,12 +141,12 @@ class BudgetMeteringMiddleware(AgentMiddleware[Any, Any, Any]):
                 agent_id=self.spec.agent_id,
                 details={"reason": reason},
             )
-            raise AgentStopped(f"budget:{reason}")
+            raise AgentStopped(f"budget:{reason}" if reason in ("cost", "tokens") else reason)
         return None
 
     async def aafter_model(self, state: Any, runtime: Any) -> dict[str, Any] | None:
-        last = state["messages"][-1]
-        meta: Any = (last.usage_metadata if isinstance(last, AIMessage) else None) or {}
+        last = next((m for m in reversed(state["messages"]) if isinstance(m, AIMessage)), None)
+        meta: Any = (last.usage_metadata if last is not None else None) or {}
         self.meter.record_model_call(meta.get("input_tokens", 0), meta.get("output_tokens", 0))
         return None
 

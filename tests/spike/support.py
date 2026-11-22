@@ -60,5 +60,3 @@ class SpecialistOutput(Contract):
     recommended_next_action: str
     completion_status: Literal["complete", "partial", "blocked"]
     overall_confidence: Confidence
-
-

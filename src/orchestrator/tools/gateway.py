@@ -89,6 +89,18 @@ def _refusal(error: str, **extra: JsonValue) -> str:
     return json.dumps({"error": error, **extra})
 
 
+def idempotency_key(agent_id: str, tool_name: str, arguments: dict[str, Any]) -> str:
+    """Stable for one logical call, so a re-run of the same call is recognisable."""
+    return hashlib.sha256(
+        json.dumps([agent_id, tool_name, arguments], sort_keys=True).encode()
+    ).hexdigest()
+
+
+def evidence_id_for(key: str, index: int) -> str:
+    """The id of the `index`th item a call returned: the same call yields the same ids."""
+    return f"ev_{hashlib.sha256(f'{key}:{index}'.encode()).hexdigest()[:16]}"
+
+
 class ToolGateway:
     def __init__(
         self,
@@ -151,9 +163,7 @@ class ToolGateway:
             await self._audit("tool.invalid_arguments", spec, tool=grant.tool_name, fields=fields)
             return _refusal("invalid_arguments", fields=fields)
 
-        key = hashlib.sha256(
-            json.dumps([spec.agent_id, grant.tool_name, clean], sort_keys=True).encode()
-        ).hexdigest()
+        key = idempotency_key(spec.agent_id, grant.tool_name, clean)
         context = {"project_id": spec.project_id, "idempotency_key": key}
         started = time.monotonic()
         try:
@@ -208,7 +218,7 @@ class ToolGateway:
                 continue
             text = str(item["text"])
             evidence = Evidence(
-                evidence_id=f"ev_{hashlib.sha256(f'{key}:{index}'.encode()).hexdigest()[:16]}",
+                evidence_id=evidence_id_for(key, index),
                 project_id=spec.project_id,
                 captured_by_agent=spec.agent_id,
                 captured_by_tool=f"{tool}@{version}",

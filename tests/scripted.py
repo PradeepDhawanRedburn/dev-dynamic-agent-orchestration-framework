@@ -14,14 +14,18 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 from pydantic import PrivateAttr
 
 
-def specialist_output_args(claims: int = 3, evidence_ids: list[str] | None = None) -> dict[str, Any]:
+def specialist_output_args(
+    claims: int = 3, evidence_ids: list[str] | None = None
+) -> dict[str, Any]:
     return {
         "executive_summary": "Summary of the work.",
         "findings": [f"finding {i}" for i in range(claims)],
         "claims": [
             {
                 "statement": f"claim {i}",
-                "evidence_ids": [evidence_ids[i % len(evidence_ids)] if evidence_ids else f"ev_{i}"],
+                "evidence_ids": [
+                    evidence_ids[i % len(evidence_ids)] if evidence_ids else f"ev_{i}"
+                ],
                 "confidence": "high",
             }
             for i in range(claims)
