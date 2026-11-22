@@ -70,7 +70,7 @@ uv sync --locked                 # create .venv from the lock file
 uv run ruff check src tests
 uv run ruff format --check src tests
 uv run mypy
-uv run pytest --ignore=tests/spike
+uv run pytest --ignore=tests/spike   # unit and integration tests; the integration tests need Docker
 python3 scripts/check_agents.py
 uv run pytest tests/spike        # architecture spike; needs Docker for PostgreSQL
 ```
@@ -88,8 +88,8 @@ It listens on `127.0.0.1:5432` only (change `POSTGRES_PORT` in `.env` if the por
 `DATABASE_URL` from `.env`; `.env.example` shows the variables and `.env` is never committed. Put your Foundry settings
 (`AZURE_OPENAI_*`, `AZURE_MODEL_*`) in the same `.env`; the spike tests read the `AZURE_*` ones from it.
 
-The spike tests start their own throwaway PostgreSQL container by default. To run them on the local database
-instead, set `SPIKE_POSTGRES_DSN` to the value of `DATABASE_URL`; they create their own databases on it. Tests marked `foundry`
+The tests start their own throwaway PostgreSQL container by default. To run them on the local database
+instead, set `TEST_POSTGRES_DSN` to the value of `DATABASE_URL`; every test creates its own database on it and drops it afterwards. The integration tests (`tests/integration`) use the same setting. Tests marked `foundry`
 are skipped, with the reason shown, unless `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY` are set in your
 shell; never put them in a file in the repository. No LangSmith or LangChain tracing variable may be set.
 

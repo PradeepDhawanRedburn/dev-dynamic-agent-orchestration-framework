@@ -1,11 +1,12 @@
-"""Budget ledger with reservations. The in-memory version below is for tests;
-production uses the same interface over PostgreSQL with SELECT ... FOR UPDATE."""
+"""Budget ledger with reservations (ADR-0005). `BudgetLedger` is the interface; the in-memory
+version below is for tests and the PostgreSQL version (persistence/repositories.py) is the real
+one, using row locks so concurrent reservations never overspend a scope."""
 
 from __future__ import annotations
 
 import threading
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, Protocol
 
 from orchestrator.contracts import Contract, Usage
 
@@ -26,6 +27,16 @@ class BudgetSnapshot(Contract):
     @property
     def available(self) -> Decimal:
         return self.limit - self.committed - self.reserved
+
+
+class BudgetLedger(Protocol):
+    """Every method is safe to repeat: a graph node that is retried calls them again."""
+
+    def open_scope(self, scope: str, limit: Decimal) -> None: ...
+    def reserve(self, reservation_id: str, chain: list[str], amount: Decimal) -> None: ...
+    def settle(self, reservation_id: str, usage: Usage) -> None: ...
+    def release(self, reservation_id: str) -> None: ...
+    def snapshot(self, scope: str) -> BudgetSnapshot: ...
 
 
 class InMemoryLedger:

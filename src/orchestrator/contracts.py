@@ -7,10 +7,14 @@ import hashlib
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+
+# What may be a string in graph state: a short token, not prose (ADR-0033 point 7).
+IDENTIFIER_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$"
+Identifier = Annotated[str, StringConstraints(pattern=IDENTIFIER_PATTERN)]
 
 
 def new_id(prefix: str) -> str:

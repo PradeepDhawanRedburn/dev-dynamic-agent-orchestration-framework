@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 .env
 .archify/
 .DS_Store

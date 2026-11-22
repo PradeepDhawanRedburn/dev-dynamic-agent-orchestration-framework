@@ -111,7 +111,7 @@ class InMemoryAgentRegistry:
         self._records: dict[str, AgentRecord] = {}
 
     def add(self, record: AgentRecord) -> None:
-        self._records[record.spec.agent_id] = record
+        self._records.setdefault(record.spec.agent_id, record)  # a retried node must not reset it
 
     def get(self, agent_id: str) -> AgentRecord:
         return self._records[agent_id]
