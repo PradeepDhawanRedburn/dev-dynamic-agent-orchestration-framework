@@ -1,7 +1,8 @@
 # ADR-0029: How the LangChain family of tools is used
 
-- **Status:** Proposed; points 3 and 6 amended by [ADR-0033](0033-decisions-from-the-architecture-spike.md) after the spike
+- **Status:** Accepted; points 3 and 6 amended by [ADR-0033](0033-decisions-from-the-architecture-spike.md) after the spike
 - **Date:** 2026-11-21
+- **Decided:** Accepted on 22 November 2026 by the architect, under authority the repository owner delegated that day to take the decisions blocking implementation. Information security may still reopen point 4 (LangSmith) through action H-17
 
 ## Context
 

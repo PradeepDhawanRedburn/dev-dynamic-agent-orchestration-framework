@@ -1,6 +1,7 @@
 # ADR-0027: Permanent agents have role skills and a tool catalogue
 
-- **Status:** Proposed
+- **Status:** Accepted
+- **Decided:** Accepted on 22 November 2026 by the architect, under authority the repository owner delegated that day to take the decisions blocking implementation
 - **Date:** 2026-11-21
 
 ## Context
