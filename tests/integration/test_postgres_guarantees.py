@@ -177,7 +177,7 @@ def test_the_trigger_stops_an_update_by_the_owner_too(migrated: str, app_pool: P
 
 def test_the_application_role_can_do_everything_normal_operation_needs(app_pool: Pool) -> None:
     ledger = PostgresLedger(app_pool)
-    ledger.open_scope("s", D("5"))
+    ledger.open_scope("s", D("5"), changed_by="system:test")
     ledger.reserve("r", ["s"], D("2"))
     ledger.settle("r", Usage(cost=D("1")))
     ledger.reserve("r2", ["s"], D("1"))
@@ -260,9 +260,9 @@ def test_a_decision_is_stored_with_the_database_checks_satisfied(app_pool: Pool)
 # ---------------------------------------------------------------- concurrency
 def test_concurrent_reservations_never_overspend_a_scope(app_pool: Pool) -> None:
     ledger = PostgresLedger(app_pool)
-    ledger.open_scope("prj", D("8"))
+    ledger.open_scope("prj", D("8"), changed_by="system:test")
     for ws in ("a", "b", "c"):
-        ledger.open_scope(f"prj/{ws}", D("5"))
+        ledger.open_scope(f"prj/{ws}", D("5"), changed_by="system:test")
     attempts = 36
 
     def reserve(i: int) -> bool:
@@ -283,7 +283,7 @@ def test_concurrent_reservations_never_overspend_a_scope(app_pool: Pool) -> None
 
 def test_concurrent_identical_reservations_reserve_once(app_pool: Pool) -> None:
     ledger = PostgresLedger(app_pool)
-    ledger.open_scope("s", D("10"))
+    ledger.open_scope("s", D("10"), changed_by="system:test")
     with ThreadPoolExecutor(8) as pool:
         list(pool.map(lambda _: ledger.reserve("same", ["s"], D("3")), range(16)))
     assert ledger.snapshot("s").reserved == D("3")
@@ -291,7 +291,7 @@ def test_concurrent_identical_reservations_reserve_once(app_pool: Pool) -> None:
 
 def test_concurrent_settle_and_reserve_never_lose_or_double_count_money(app_pool: Pool) -> None:
     ledger = PostgresLedger(app_pool)
-    ledger.open_scope("s", D("100"))
+    ledger.open_scope("s", D("100"), changed_by="system:test")
     for i in range(20):
         ledger.reserve(f"old{i}", ["s"], D("2"))
 

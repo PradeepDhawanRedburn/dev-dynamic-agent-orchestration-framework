@@ -33,7 +33,14 @@ from orchestrator.governance.approvals import (
     DecisionRecord,
     card_hash,
 )
-from orchestrator.governance.budget import BudgetExceeded, BudgetSnapshot
+from orchestrator.governance.budget import (
+    BudgetExceeded,
+    BudgetSnapshot,
+    ReservationClosed,
+    ReservationRecord,
+    limit_event,
+    scope_project,
+)
 from orchestrator.governance.recruiter import AgentRecord
 from orchestrator.observability.tracing import current_trace_ids
 from orchestrator.persistence.audit import (
@@ -50,6 +57,82 @@ class StoredDataCorrupt(Exception):
     """A stored row no longer matches the hash or value it was written with."""
 
 
+def append_event(
+    conn: Any,
+    kind: str,
+    *,
+    actor: str,
+    project_id: str | None = None,
+    workstream_id: str | None = None,
+    task_id: str | None = None,
+    agent_id: str | None = None,
+    correlation_id: str | None = None,
+    details: Mapping[str, JsonValue] | None = None,
+    event_id: str | None = None,
+) -> AuditEvent:
+    """Append an audit event on `conn`, inside whatever transaction it is in, so a state change
+    and its audit row commit or fail together (ADR-0003). Takes the lock on the audit head."""
+    trace_id, span_id = current_trace_ids()
+    head = conn.execute(
+        "SELECT last_seq, last_hash FROM audit_head WHERE id = 1 FOR UPDATE"
+    ).fetchone()
+    if head is None:
+        raise StoredDataCorrupt("audit_head row is missing")
+    if event_id is not None:
+        existing = conn.execute(
+            sql.SQL("SELECT {} FROM audit_events WHERE event_id = %s").format(AUDIT_COLUMNS),
+            (event_id,),
+        ).fetchone()
+        if existing is not None:
+            return AuditEvent(**existing)
+    event = seal(
+        AuditEvent(
+            seq=head["last_seq"] + 1,
+            event_id=event_id or new_id("aud"),
+            occurred_at=utcnow(),
+            kind=kind,
+            actor=actor,
+            project_id=project_id,
+            workstream_id=workstream_id,
+            task_id=task_id,
+            agent_id=agent_id,
+            correlation_id=correlation_id,
+            details=dict(details or {}),
+            trace_id=trace_id,
+            span_id=span_id,
+            prev_hash=head["last_hash"],
+            hash="",
+        )
+    )
+    conn.execute(
+        sql.SQL("INSERT INTO audit_events ({}) VALUES ({})").format(
+            AUDIT_COLUMNS, sql.SQL(", ").join([sql.Placeholder()] * 15)
+        ),
+        (
+            event.seq,
+            event.event_id,
+            event.occurred_at,
+            event.kind,
+            event.actor,
+            event.project_id,
+            event.workstream_id,
+            event.task_id,
+            event.agent_id,
+            event.correlation_id,
+            Jsonb(event.details),
+            event.trace_id,
+            event.span_id,
+            event.prev_hash,
+            event.hash,
+        ),
+    )
+    conn.execute(
+        "UPDATE audit_head SET last_seq = %s, last_hash = %s WHERE id = 1",
+        (event.seq, event.hash),
+    )
+    return event
+
+
 # ---------------------------------------------------------------- budget ledger
 class PostgresLedger:
     """Scopes form a chain, for example ['prj_1', 'prj_1/ws_2']. A reservation takes row locks on
@@ -59,12 +142,22 @@ class PostgresLedger:
     def __init__(self, pool: Pool, warn_fraction: Decimal = Decimal("0.8")) -> None:
         self._pool, self._warn = pool, warn_fraction
 
-    def open_scope(self, scope: str, limit: Decimal) -> None:
+    def open_scope(self, scope: str, limit: Decimal, *, changed_by: str) -> None:
         with self._pool.connection() as conn:
+            old_row = conn.execute(
+                "SELECT limit_amount FROM budget_scopes WHERE scope = %s FOR UPDATE", (scope,)
+            ).fetchone()
+            old = old_row["limit_amount"] if old_row else None
+            if old == limit:
+                return
             conn.execute(
                 "INSERT INTO budget_scopes (scope, limit_amount) VALUES (%s, %s) "
                 "ON CONFLICT (scope) DO UPDATE SET limit_amount = EXCLUDED.limit_amount",
                 (scope, limit),
+            )
+            kind, details = limit_event(scope, old, limit)
+            append_event(
+                conn, kind, actor=changed_by, project_id=scope_project(scope), details=details
             )
 
     def reserve(self, reservation_id: str, chain: list[str], amount: Decimal) -> None:
@@ -115,6 +208,8 @@ class PostgresLedger:
                 raise KeyError(reservation_id)
             if row["state"] == "settled":
                 return
+            if row["state"] == "released":
+                raise ReservationClosed(reservation_id)
             conn.execute(
                 "SELECT scope FROM budget_scopes WHERE scope = ANY(%s) ORDER BY scope FOR UPDATE",
                 (row["chain"],),
@@ -131,11 +226,24 @@ class PostgresLedger:
             )
 
     def release(self, reservation_id: str) -> None:
+        """Keep the reservation, marked released. A settled or unknown id changes nothing."""
         with self._pool.connection() as conn:
             conn.execute(
-                "DELETE FROM budget_reservations WHERE reservation_id = %s AND state = 'reserved'",
+                "UPDATE budget_reservations SET state = 'released', released_at = now() "
+                "WHERE reservation_id = %s AND state = 'reserved'",
                 (reservation_id,),
             )
+
+    def reservation(self, reservation_id: str) -> ReservationRecord:
+        with self._pool.connection() as conn:
+            row = conn.execute(
+                "SELECT reservation_id, chain, amount, state, settled_amount "
+                "FROM budget_reservations WHERE reservation_id = %s",
+                (reservation_id,),
+            ).fetchone()
+        if row is None:
+            raise KeyError(reservation_id)
+        return ReservationRecord(**row)
 
     def snapshot(self, scope: str) -> BudgetSnapshot:
         with self._pool.connection() as conn:
@@ -398,68 +506,19 @@ class PostgresAuditLog:
         details: Mapping[str, JsonValue] | None = None,
         event_id: str | None = None,
     ) -> AuditEvent:
-        trace_id, span_id = current_trace_ids()
         with self._pool.connection() as conn:
-            head = conn.execute(
-                "SELECT last_seq, last_hash FROM audit_head WHERE id = 1 FOR UPDATE"
-            ).fetchone()
-            if head is None:
-                raise StoredDataCorrupt("audit_head row is missing")
-            if event_id is not None:
-                existing = conn.execute(
-                    sql.SQL("SELECT {} FROM audit_events WHERE event_id = %s").format(
-                        AUDIT_COLUMNS
-                    ),
-                    (event_id,),
-                ).fetchone()
-                if existing is not None:
-                    return AuditEvent(**existing)
-            event = seal(
-                AuditEvent(
-                    seq=head["last_seq"] + 1,
-                    event_id=event_id or new_id("aud"),
-                    occurred_at=utcnow(),
-                    kind=kind,
-                    actor=actor,
-                    project_id=project_id,
-                    workstream_id=workstream_id,
-                    task_id=task_id,
-                    agent_id=agent_id,
-                    correlation_id=correlation_id,
-                    details=dict(details or {}),
-                    trace_id=trace_id,
-                    span_id=span_id,
-                    prev_hash=head["last_hash"],
-                    hash="",
-                )
+            return append_event(
+                conn,
+                kind,
+                actor=actor,
+                project_id=project_id,
+                workstream_id=workstream_id,
+                task_id=task_id,
+                agent_id=agent_id,
+                correlation_id=correlation_id,
+                details=details,
+                event_id=event_id,
             )
-            conn.execute(
-                sql.SQL("INSERT INTO audit_events ({}) VALUES ({})").format(
-                    AUDIT_COLUMNS, sql.SQL(", ").join([sql.Placeholder()] * 15)
-                ),
-                (
-                    event.seq,
-                    event.event_id,
-                    event.occurred_at,
-                    event.kind,
-                    event.actor,
-                    event.project_id,
-                    event.workstream_id,
-                    event.task_id,
-                    event.agent_id,
-                    event.correlation_id,
-                    Jsonb(event.details),
-                    event.trace_id,
-                    event.span_id,
-                    event.prev_hash,
-                    event.hash,
-                ),
-            )
-            conn.execute(
-                "UPDATE audit_head SET last_seq = %s, last_hash = %s WHERE id = 1",
-                (event.seq, event.hash),
-            )
-        return event
 
     def events(
         self, *, project_id: str | None = None, agent_id: str | None = None, kind: str | None = None
@@ -607,3 +666,29 @@ class PostgresDecisionRegister:
                 (decision_id,),
             ).fetchall()
         return [row["audit_event_id"] for row in rows]
+
+
+# ---------------------------------------------------------------- tool-call counters
+class PostgresToolCallCounters:
+    def __init__(self, pool: Pool) -> None:
+        self._pool = pool
+
+    def increment(self, agent_id: str, tool_name: str) -> int:
+        with self._pool.connection() as conn:
+            row = conn.execute(
+                "INSERT INTO tool_call_counters (agent_id, tool_name, calls) VALUES (%s, %s, 1) "
+                "ON CONFLICT (agent_id, tool_name) DO UPDATE "
+                "SET calls = tool_call_counters.calls + 1 RETURNING calls",
+                (agent_id, tool_name),
+            ).fetchone()
+        assert row is not None
+        calls: int = row["calls"]
+        return calls
+
+    def count(self, agent_id: str, tool_name: str) -> int:
+        with self._pool.connection() as conn:
+            row = conn.execute(
+                "SELECT calls FROM tool_call_counters WHERE agent_id = %s AND tool_name = %s",
+                (agent_id, tool_name),
+            ).fetchone()
+        return int(row["calls"]) if row else 0
