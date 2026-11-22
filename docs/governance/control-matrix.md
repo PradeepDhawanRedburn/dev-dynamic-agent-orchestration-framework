@@ -1,8 +1,9 @@
 # Control matrix
 
 Each control, what provides it, the evidence it leaves, and where it is built. **Status of every
-row: designed, not built.** A row becomes "built" when its work package is merged with passing
-tests, and "operating" only after your own assurance testing.
+row: designed, not built, except the rows listed under "Built so far" below.** A row becomes
+"built" when its work package is merged with passing tests, and "operating" only after your own
+assurance testing.
 
 Functions: IT sec, InfoSec, Arch (architecture), Legal, Compliance, AI gov (AI governance).
 
@@ -34,6 +35,20 @@ Functions: IT sec, InfoSec, Arch (architecture), Legal, Compliance, AI gov (AI g
 | Resilience | Faults handled without improvisation | Approved runbooks, then a person | Platform code (ADR-0015) | Incident events | WP-07 | IT sec |
 | Stop | Everything can be halted | Kill switch; cancellation; credential freeze | Platform code | Audit | WP-06 | InfoSec, AI gov |
 
+## Built so far
+
+Updated by each work package. "Built" means the code exists and its tests pass; none is
+"operating".
+
+| Control | Status | What exists | Tests |
+| --- | --- | --- | --- |
+| Every action attributable: append-only, hash-chained audit | Built in WP-02 (store only; nothing writes to it yet) | PostgreSQL audit log; each event stores the trace id and span id current when written; the application role has INSERT and SELECT only, and triggers refuse UPDATE, DELETE and TRUNCATE for every role; `verify_chain` | `tests/integration/test_audit.py`, `test_postgres_guarantees.py`, `tests/unit/test_properties.py` |
+| Every claim backed by a captured source: evidence ids issued only by the gateway | Store built in WP-02; the gateway that writes it is WP-03 | Immutable evidence metadata; a store answers which ids were issued to which agent; a result citing another id is refused | `tests/integration/test_evidence.py` |
+| State protected at rest: encrypted checkpoint serialiser | Built in WP-02 (serialiser); Azure configuration is WP-12 | AES serialiser, strict msgpack, no pickle fallback, autocommit connection, key from `LANGGRAPH_AES_KEY` | `tests/integration/test_checkpointer.py` |
+| State holds identifiers, statuses and counters only | Rule and test built in WP-02; no graph state model exists yet to apply it to (WP-05) | `free_text_fields` and `@state_model` | `tests/unit/test_state_policy.py` |
+| Runaway cost: budget ledger with reservations | Ledger built in WP-02; metering and call limits are WP-03 | Row-locked PostgreSQL ledger; concurrent reservations never overspend; settlement idempotent | `tests/integration/test_ledger.py`, `test_postgres_guarantees.py`, `test_properties_postgres.py` |
+| A timeout is never an approval | Register rule built in WP-02; the gates that use it are WP-05 | Decision register: a timeout is stored as a timeout with the default taken, by a rule; an agent's recommendation is never a decision; an override is its own row with a reason; the database repeats these as CHECK constraints | `tests/integration/test_decisions.py` |
+
 ## Known gaps
 
 Stated so that no reviewer has to find them.
@@ -51,5 +66,6 @@ Stated so that no reviewer has to find them.
 | The model provider processes prompts | Inherent to using a model | Foundry deployments in the tenant; terms to be confirmed by Legal |
 | A person can release work over a failed check or a review finding | Owner's requirement (ADR-0032) | Always recorded with a reason and shown on the deliverable; override counts reported |
 | Prompts and skills are unevaluated drafts | No evaluation data yet (H-13) | Nothing is promoted without passing the evaluation gate |
+| The database owner can switch the append-only triggers off, and the application role can append events and move the stored chain head | PostgreSQL gives a superuser and the writer these rights | Changing or removing an existing event is detected by chain verification, and the application role cannot do it. Forging a new event is not prevented. Separate owner and application credentials, and exporting the chain head to immutable storage on a schedule, are WP-12 |
 | Nothing has been run against the real libraries | Design stage | WP-01 exists for this |
 | No penetration test, threat-model review or red-team exercise | Not yet scheduled | Required before production; phase 5 of the roadmap |

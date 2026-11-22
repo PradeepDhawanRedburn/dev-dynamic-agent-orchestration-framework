@@ -17,7 +17,7 @@ from psycopg.rows import dict_row
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
-from tests.spike.conftest import run_async
+from tests.conftest import run_async
 from tests.spike.test_graph_interrupts import build_supervisor
 
 pytestmark = pytest.mark.postgres
