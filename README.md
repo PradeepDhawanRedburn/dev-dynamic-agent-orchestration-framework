@@ -94,7 +94,7 @@ are skipped, with the reason shown, unless `AZURE_OPENAI_ENDPOINT` and `AZURE_OP
 shell; never put them in a file in the repository. No LangSmith or LangChain tracing variable may be set.
 
 The model catalogue is `policy/model_catalogue.yaml` (provisional; set `ORCHESTRATOR_MODEL_CATALOGUE` to use another
-file). Agent prompts are loaded from `agents/` (`ORCHESTRATOR_AGENTS_DIR` to use another directory). The assembled
+file). Agent prompts are loaded from `agents/` (set `ORCHESTRATOR_AGENTS_DIR` to use another directory, as the container image does; a missing directory stops startup with a message naming the variable and the path). `python3 scripts/check_text_files.py` checks that committed text files are UTF-8, without a byte-order mark, with LF line endings; CI runs it. The assembled
 prompts are pinned by golden files in `tests/golden/`; after a deliberate change under `agents/`, regenerate them with
 `ORCHESTRATOR_UPDATE_GOLDEN=1 uv run --locked python -m pytest tests/golden` and read the diff before committing.
 

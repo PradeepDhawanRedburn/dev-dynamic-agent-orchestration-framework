@@ -126,6 +126,7 @@ class WorkerEnv:
     search: FakeSearch
     incidents: list[Incident] = field(default_factory=list)
     models: list[ScriptedChatModel] = field(default_factory=list)
+    timeouts: list[float] = field(default_factory=list)
     script: list[Any] = field(default_factory=list)
     deps: WorkerDeps = field(init=False)
 
@@ -144,7 +145,10 @@ class WorkerEnv:
             record,
         )
 
-        def factory(entry: ModelEntry, max_output_tokens: int) -> BaseChatModel:
+        def factory(
+            entry: ModelEntry, max_output_tokens: int, timeout_seconds: float
+        ) -> BaseChatModel:
+            self.timeouts.append(timeout_seconds)
             model = ScriptedChatModel(script=list(self.script))
             self.models.append(model)
             return model

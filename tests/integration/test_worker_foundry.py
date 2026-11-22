@@ -53,8 +53,7 @@ def test_a_real_deployment_returns_a_valid_result_and_is_metered(key: str) -> No
         "In two sentences, say what a REST API is.",
         model=ModelConfig(deployment=key, max_output_tokens=4000),
     )
-    if outcome.status != "awaiting_review":
-        pytest.skip(f"could not test {key}: {outcome.status} {outcome.error}")
+    assert outcome.status == "awaiting_review", f"{key}: {outcome.status} {outcome.error}"
     assert outcome.result is not None and outcome.result.output.executive_summary
     assert outcome.usage.input_tokens > 0 and outcome.usage.output_tokens > 0
     assert outcome.usage.cost == env.catalogue.cost(

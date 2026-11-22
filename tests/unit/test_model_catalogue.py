@@ -162,6 +162,14 @@ def test_changing_the_entry_changes_the_call(fake_foundry: None) -> None:
     assert (b.use_responses_api, b.reasoning_effort) == (True, "minimal")
 
 
+def test_the_request_timeout_reaches_the_model(fake_foundry: None) -> None:
+    entry = catalogue_with(m=ENTRY).get("m")
+    model: Any = build_chat_model(entry, max_output_tokens=10, timeout_seconds=33)
+    assert model.request_timeout == 33
+    default: Any = build_chat_model(entry, max_output_tokens=10)
+    assert default.request_timeout == 120
+
+
 def test_a_missing_endpoint_or_key_is_a_clear_error(
     catalogue: ModelCatalogue, monkeypatch: pytest.MonkeyPatch
 ) -> None:

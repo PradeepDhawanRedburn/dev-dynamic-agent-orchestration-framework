@@ -55,6 +55,11 @@ _STOPPED = {
 }
 
 
+def stop_reason(status: AgentStatus) -> str | None:
+    """Why an agent in this registry status must not make another call, or None if it may."""
+    return _STOPPED.get(status)
+
+
 class AgentStopped(Exception):
     """Raised by governance code to end an agent at once. Never retried."""
 
@@ -133,11 +138,13 @@ class ToolGateway:
         self, spec: AgentSpecification, grant: ToolPermission, args: dict[str, Any]
     ) -> str:
         if self.kill.is_set(spec.project_id, spec.agent_id):
+            await self._audit("tool.denied", spec, tool=grant.tool_name, reason="kill_switch")
             raise AgentStopped("cancelled")
         status = (await self.stores.registry.get(spec.agent_id)).status
-        if status in _STOPPED:
+        reason = stop_reason(status)
+        if reason is not None:
             await self._audit("tool.denied", spec, tool=grant.tool_name, reason=f"agent_{status}")
-            raise AgentStopped(_STOPPED[status])
+            raise AgentStopped(reason)
 
         if grant not in spec.tools:
             await self._audit("tool.denied", spec, tool=grant.tool_name, reason="not_granted")
@@ -233,8 +240,16 @@ class ToolGateway:
             try:
                 await self.stores.evidence.put(evidence)
             except EvidenceConflict:
-                # The same call ran again (a resumed node): keep the record already stored.
-                evidence = await self.stores.evidence.get(evidence.evidence_id)
+                # The same call ran again (a resumed node). Reuse the stored record only if the
+                # source says the same thing; a changed source is not cited under the old id.
+                stored = await self.stores.evidence.get(evidence.evidence_id)
+                if stored.content_sha256 != evidence.content_sha256:
+                    await self._audit(
+                        "tool.evidence_changed", spec, tool=tool, evidence_id=stored.evidence_id
+                    )
+                    items.append({"withheld": "the source changed since it was first captured"})
+                    continue
+                evidence = stored
             items.append(
                 {
                     "content": text,
@@ -248,7 +263,9 @@ class ToolGateway:
 def bind_tool(
     spec: AgentSpecification, grant: ToolPermission, gateway: ToolGateway
 ) -> StructuredTool:
-    """A LangChain tool that does nothing but call the gateway."""
+    """A LangChain tool that does nothing but call the gateway. The model is shown the tool's own
+    schema, but the arguments are not validated here: the gateway counts the call and validates
+    them, so a malformed call is counted and audited like any other."""
     definition, impl = gateway.registry.implementation(grant)
 
     async def call(**kwargs: Any) -> str:
@@ -258,5 +275,5 @@ def bind_tool(
         coroutine=call,
         name=definition.name,
         description=definition.description,
-        args_schema=impl.args_model,
+        args_schema=impl.args_model.model_json_schema(),
     )

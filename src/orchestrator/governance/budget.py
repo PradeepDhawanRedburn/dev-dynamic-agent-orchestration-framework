@@ -149,7 +149,7 @@ class InMemoryLedger:
                 self._records[reservation_id] = record.model_copy(update={"state": "released"})
 
     def reservation(self, reservation_id: str) -> ReservationRecord:
-        return self._records[reservation_id]
+        return self._records[reservation_id].model_copy(deep=True)
 
     def snapshot(self, scope: str) -> BudgetSnapshot:
         committed, reserved, limit = (

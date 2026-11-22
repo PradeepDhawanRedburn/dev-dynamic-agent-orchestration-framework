@@ -160,3 +160,87 @@ def test_a_limit_without_a_named_person_or_service_is_refused(stores: Stores) ->
         stores.ledger.open_scope("prj_1", D("5"), changed_by="")
     with pytest.raises(KeyError):
         stores.ledger.snapshot("prj_1")
+
+
+def test_a_returned_reservation_is_a_copy_so_the_record_cannot_be_rewritten(
+    stores: Stores,
+) -> None:
+    chain = open_chain(stores)
+    stores.ledger.reserve("res_1", chain, D("1"))
+    stores.ledger.release("res_1")
+    record = stores.ledger.reservation("res_1")
+    record.state = "reserved"
+    record.amount = D("9")
+    record.chain.append("prj_other")
+    again = stores.ledger.reservation("res_1")
+    assert (again.state, again.amount, again.chain) == ("released", D("1"), chain)
+    with pytest.raises(ReservationClosed):
+        stores.ledger.settle("res_1", Usage(cost=D("1")))
+
+
+def test_opening_a_scope_waits_for_whoever_else_is_changing_that_scope(stores: Stores) -> None:
+    """Deterministic: the scope's advisory lock is taken on another connection, and `open_scope`
+    must not read the old limit until it is released. (`FOR UPDATE` alone locks nothing while the
+    scope does not exist, so two first opens could both see no limit.)"""
+    if stores.dsn is None:
+        pytest.skip("PostgreSQL only")
+    import threading
+    import time
+
+    import psycopg
+
+    done = threading.Event()
+
+    def attempt() -> None:
+        stores.ledger.open_scope("prj_lock", D("5"), changed_by=WHO)
+        done.set()
+
+    with psycopg.connect(stores.dsn) as blocker:
+        blocker.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", ("scope:prj_lock",))
+        worker = threading.Thread(target=attempt)
+        worker.start()
+        time.sleep(1.0)
+        assert not done.is_set(), "open_scope went ahead while the scope was locked"
+        blocker.rollback()
+    worker.join(timeout=10)
+    assert done.is_set()
+    assert [e.kind for e in stores.audit.events(project_id="prj_lock")] == ["budget.scope_opened"]
+
+
+def test_concurrent_first_opens_of_one_scope_write_one_event_and_agree_on_the_limit(
+    stores: Stores,
+) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(8) as pool:
+        futures = [
+            pool.submit(stores.ledger.open_scope, "prj_race", D(str(limit)), changed_by=WHO)
+            for limit in (5, 5, 5, 5, 5, 5, 5, 5)
+        ]
+        for future in futures:
+            future.result()
+    events = stores.audit.events(project_id="prj_race")
+    assert [e.kind for e in events] == ["budget.scope_opened"]
+    assert stores.ledger.snapshot("prj_race").limit == D("5")
+
+
+def test_concurrent_changes_to_one_scope_each_record_the_limit_they_replaced(
+    stores: Stores,
+) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    stores.ledger.open_scope("prj_race", D("1"), changed_by=WHO)
+    with ThreadPoolExecutor(8) as pool:
+        futures = [
+            pool.submit(stores.ledger.open_scope, "prj_race", D(str(limit)), changed_by=WHO)
+            for limit in range(2, 10)
+        ]
+        for future in futures:
+            future.result()
+    events = stores.audit.events(project_id="prj_race")
+    changes = [e for e in events if e.kind == "budget.limit_changed"]
+    assert len(changes) == 8
+    olds = {str(dict(e.details)["old_limit"]) for e in changes}
+    news = {str(dict(e.details)["new_limit"]) for e in changes}
+    assert len(olds) == 8 and len(news) == 8, "no two changes replaced the same limit"
+    assert stores.audit.verify_chain().ok

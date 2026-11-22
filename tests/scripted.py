@@ -56,7 +56,8 @@ def tool_call_message(
 
 
 class ScriptedChatModel(BaseChatModel):
-    """Returns scripted messages in order (the last one repeats) and records what it was sent."""
+    """Returns scripted messages in order (the last one repeats) and records what it was sent.
+    An entry may be an exception to raise, or a function to call that returns the message."""
 
     script: list[Any]
     fail_first: int = 0
@@ -93,6 +94,8 @@ class ScriptedChatModel(BaseChatModel):
         self._seen.append(list(messages))
         entry = self.script[min(self._next, len(self.script) - 1)]
         self._next += 1
+        if callable(entry) and not isinstance(entry, BaseMessage):
+            entry = entry()  # a hook: runs on the worker thread, returns the message to send
         if isinstance(entry, BaseException):
             raise entry
         return ChatResult(generations=[ChatGeneration(message=entry)])

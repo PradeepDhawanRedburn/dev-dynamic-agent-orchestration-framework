@@ -38,7 +38,7 @@ from orchestrator.contracts import AgentSpecification
 from orchestrator.governance.metering import UsageMeter
 from orchestrator.governance.resilience import FailureKind, classify
 from orchestrator.persistence.facade import AsyncStores
-from orchestrator.tools.gateway import AgentStopped, KillSwitch
+from orchestrator.tools.gateway import AgentStopped, KillSwitch, stop_reason
 
 # Order matters: the first entry is the outermost.
 MIDDLEWARE_ORDER: tuple[str, ...] = (
@@ -106,7 +106,12 @@ class ValidationCounter:
         return f"Your answer did not match the required schema (attempt {count}). Correct it."
 
 
-def tool_error_content(error: Exception, request: ToolCallRequest) -> str:
+def tool_error_content(error: Exception, request: ToolCallRequest) -> str | None:
+    """Content for the model, naming the exception type only. A stop ordered by governance code
+    (`AgentStopped`) is not a tool failure and is never turned into content: it must reach the
+    worker and end the run."""
+    if isinstance(error, AgentStopped):
+        return None
     return (
         f"The tool '{request.tool_call['name']}' failed with {type(error).__name__}. "
         "Do not repeat the same call; continue without it or report the limit."
@@ -114,8 +119,8 @@ def tool_error_content(error: Exception, request: ToolCallRequest) -> str:
 
 
 class BudgetMeteringMiddleware(AgentMiddleware[Any, Any, Any]):
-    """Outermost. Stops the agent before a model call if it was killed or its budget is spent, and
-    meters every model call afterwards from the provider's token counts."""
+    """Outermost. Stops the agent before a model call if it was killed, suspended or retired, or if
+    its budget is spent, and meters every model call afterwards from the provider's token counts."""
 
     def __init__(
         self,
@@ -130,6 +135,10 @@ class BudgetMeteringMiddleware(AgentMiddleware[Any, Any, Any]):
     async def abefore_model(self, state: Any, runtime: Any) -> dict[str, Any] | None:
         if self.kill.is_set(self.spec.project_id, self.spec.agent_id):
             raise AgentStopped("cancelled")
+        status = (await self.stores.registry.get(self.spec.agent_id)).status
+        stopped = stop_reason(status)
+        if stopped is not None:
+            raise AgentStopped(stopped)
         reason = self.meter.exhausted()
         if reason is not None:
             await self.stores.audit.append(

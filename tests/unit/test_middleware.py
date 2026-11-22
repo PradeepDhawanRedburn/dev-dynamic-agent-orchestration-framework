@@ -5,11 +5,12 @@ from typing import Any
 import pytest
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, PIIMiddleware
+from langchain.agents.structured_output import ToolStrategy
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.tools import tool
 
 import orchestrator.graph.worker as worker_module
-from orchestrator.contracts import AgentStatus
+from orchestrator.contracts import AgentStatus, SpecialistOutput
 from orchestrator.graph.middleware import (
     ALLOWED_MIDDLEWARE,
     MIDDLEWARE_ORDER,
@@ -23,11 +24,11 @@ from orchestrator.graph.middleware import (
     tool_error_content,
 )
 from orchestrator.models.catalogue import ModelCatalogue, parse_catalogue
-from orchestrator.tools.gateway import AgentStopped
+from orchestrator.tools.gateway import AgentStopped, bind_tool
 from tests.conftest import run_async
 from tests.scripted import ScriptedChatModel, specialist_output_args, tool_call_message
 from tests.unit.test_worker import content_filter_error
-from tests.worker_env import RESERVATION, WorkerEnv, grant, make_env, make_spec, make_task
+from tests.worker_env import WorkerEnv, grant, make_env, make_spec
 
 FORBIDDEN = [
     "ShellToolMiddleware",
@@ -247,6 +248,68 @@ def test_a_tool_failure_always_becomes_content_that_names_the_type_and_hides_the
     assert callable(tool_error_content)
 
 
+def test_a_stop_raised_inside_a_tool_survives_the_tool_middleware_and_ends_the_run(
+    env: WorkerEnv,
+) -> None:
+    """Only the tool-side middleware is in this agent, so this isolates the library behaviour the
+    review asked about: `ToolRetryMiddleware` (retry_on refuses AgentStopped, on_failure raises)
+    inside `ToolErrorMiddleware` (the handler returns None for AgentStopped) must let it out."""
+    g = grant()
+    spec = make_spec(tools=[g])
+    tool_side = [
+        m for m in built(env) if type(m).__name__ in ("ToolRetryMiddleware", "ToolErrorMiddleware")
+    ]
+    assert len(tool_side) == 2
+
+    async def scenario() -> list[str]:
+        await env.add_agent(spec, AgentStatus.SUSPENDED)
+        model = ScriptedChatModel(
+            script=[tool_call_message("fake_search", {"query": "x"}), AIMessage("went on")]
+        )
+        agent = create_agent(
+            model, tools=[bind_tool(spec, g, env.deps.gateway)], middleware=tool_side
+        )
+        with pytest.raises(AgentStopped) as stopped:
+            await agent.ainvoke({"messages": [{"role": "user", "content": "go"}]})
+        assert stopped.value.reason == "suspended"
+        assert model.calls == 1, "the run did not continue to a second model call"
+        return [e.kind for e in await env.stores.audit.events(agent_id=spec.agent_id)]
+
+    assert run_async(scenario()) == ["tool.denied"]
+    assert env.search.calls == 0
+
+
+def test_a_real_tool_failure_still_becomes_content_in_the_same_stack(env: WorkerEnv) -> None:
+    from orchestrator.tools.impl.fake import FakeSearch
+
+    class Boom(FakeSearch):
+        async def run(self, args: dict[str, Any], ctx: dict[str, Any]) -> dict[str, Any]:
+            raise ValueError("secret internal detail")
+
+    boom_env = make_env(search=Boom())
+    g = grant()
+    spec = make_spec(tools=[g])
+    tool_side = [
+        m
+        for m in built(boom_env)
+        if type(m).__name__ in ("ToolRetryMiddleware", "ToolErrorMiddleware")
+    ]
+
+    async def scenario() -> str:
+        await boom_env.add_agent(spec, AgentStatus.RUNNING)
+        model = ScriptedChatModel(
+            script=[tool_call_message("fake_search", {"query": "x"}), AIMessage("went on")]
+        )
+        agent = create_agent(
+            model, tools=[bind_tool(spec, g, boom_env.deps.gateway)], middleware=tool_side
+        )
+        result = await agent.ainvoke({"messages": [{"role": "user", "content": "go"}]})
+        return " ".join(str(m.content) for m in result["messages"])
+
+    text = run_async(scenario())
+    assert "went on" in text
+
+
 # ------------------------------------------------------------------ PII settings
 def pii_only(env: WorkerEnv) -> list[AgentMiddleware[Any, Any, Any]]:
     return [m for m in built(env) if isinstance(m, PIIMiddleware)]
@@ -294,32 +357,19 @@ def test_the_pii_instances_have_distinct_names_so_they_can_share_one_agent(
     assert len(pii_names) == len(set(pii_names)) == 3
 
 
-def probe_structured_output_redaction(env: WorkerEnv) -> dict[str, Any]:
-    """Does output scanning reach the text the specialist returns through the structured-output
-    tool call? Recorded in the findings either way."""
-    spec = make_spec(tools=[])
+def test_the_middleware_alone_does_not_scan_a_structured_result(env: WorkerEnv) -> None:
+    """Why the result-boundary step exists (ADR-0035): with the middleware as the only control, an
+    email in the structured result is returned as written. Pinned for langchain 1.5.2, so a library
+    change shows up here."""
     args = specialist_output_args(1)
     args["claims"] = []
     args["executive_summary"] = "Contact jane.doe@example.com for details."
-
-    async def scenario() -> dict[str, Any]:
-        await env.add_agent(spec)
-        env.script = [tool_call_message("SpecialistOutput", args)]
-        outcome = await worker_module.run_specialist(
-            env.deps, spec, make_task(spec), reservation_id=RESERVATION
-        )
-        assert outcome.result is not None
-        return {
-            "summary": outcome.result.output.executive_summary,
-            "status": AgentStatus.AWAITING_REVIEW,
-        }
-
-    return run_async(scenario())
-
-
-def test_known_gap_pii_output_scan_does_not_reach_the_structured_result(env: WorkerEnv) -> None:
-    """PIIMiddleware scans message text, and a specialist's result is the arguments of a tool call.
-    This pins today's behaviour (langchain 1.5.2) so a library change shows up. See the issue
-    linked from docs/governance/control-matrix.md."""
-    summary = probe_structured_output_redaction(env)["summary"]
-    assert summary == "Contact jane.doe@example.com for details."
+    model = ScriptedChatModel(script=[tool_call_message("SpecialistOutput", args)])
+    agent = create_agent(
+        model,
+        tools=[],
+        response_format=ToolStrategy(SpecialistOutput),
+        middleware=pii_only(env),
+    )
+    result = agent.invoke({"messages": [{"role": "user", "content": "go"}]})
+    assert result["structured_response"].executive_summary == args["executive_summary"]

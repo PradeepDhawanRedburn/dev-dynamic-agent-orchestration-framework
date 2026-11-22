@@ -57,18 +57,25 @@ class UsageMeter:
         with self._lock:
             return self._usage.model_copy()
 
-    def take_unsettled(self) -> Usage:
-        """What was spent since the last call, so a revision settles only its own spend."""
+    def unsettled(self) -> tuple[Usage, Usage]:
+        """What was spent since the last acknowledged settlement, and a mark to acknowledge it
+        with. Nothing moves until `acknowledge`, so a settlement that fails is simply tried again
+        and the spend is never dropped."""
         with self._lock:
             now, before = self._usage, self._settled
-            self._settled = now.model_copy()
-            return Usage(
+            delta = Usage(
                 input_tokens=now.input_tokens - before.input_tokens,
                 output_tokens=now.output_tokens - before.output_tokens,
                 model_calls=now.model_calls - before.model_calls,
                 tool_calls=now.tool_calls - before.tool_calls,
                 cost=now.cost - before.cost,
             )
+            return delta, now.model_copy()
+
+    def acknowledge(self, mark: Usage) -> None:
+        """Record that everything up to `mark` is in the ledger."""
+        with self._lock:
+            self._settled = mark.model_copy()
 
     def exhausted(self) -> StopReason | None:
         """The first limit that has been reached, or None. Checked before every model call."""

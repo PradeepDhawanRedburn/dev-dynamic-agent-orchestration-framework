@@ -17,16 +17,31 @@ The hash and the versions of every file used are returned so a run can record th
 `business-research` profile is deferred (ADR-0022) and loads only when asked for explicitly."""
 
 import hashlib
-import os
 import re
 from pathlib import Path
 
 from pydantic import Field
 
 from orchestrator.contracts import Contract
+from orchestrator.prompts.location import (
+    AGENTS_DIRECTORY_VARIABLE,
+    SOURCE_TREE_DIRECTORY,
+    AgentsDirectoryError,
+    agents_directory,
+    check_agents_directory,
+)
 
-AGENTS_DIRECTORY_VARIABLE = "ORCHESTRATOR_AGENTS_DIR"
-DEFAULT_AGENTS_DIRECTORY = Path(__file__).resolve().parents[3] / "agents"
+__all__ = [
+    "AGENTS_DIRECTORY_VARIABLE",
+    "SOURCE_TREE_DIRECTORY",
+    "AgentDefinitionError",
+    "AgentsDirectoryError",
+    "LoadedAgent",
+    "SkippedSkill",
+    "agents_directory",
+    "check_agents_directory",
+    "load_agent",
+]
 PROFILED_ROLES = frozenset({"lead", "tester", "guardrail-manager"})
 FOCUS_BLOCK = {"lead": "Lead focus", "tester": "Tester focus", "guardrail-manager": None}
 NEEDS_CONTENT = "needs-content"
@@ -63,10 +78,6 @@ class LoadedAgent(Contract):
     )
     prompt: str
     sha256: str
-
-
-def agents_directory() -> Path:
-    return Path(os.environ.get(AGENTS_DIRECTORY_VARIABLE) or DEFAULT_AGENTS_DIRECTORY)
 
 
 def _read(path: Path) -> str:

@@ -144,6 +144,9 @@ class PostgresLedger:
 
     def open_scope(self, scope: str, limit: Decimal, *, changed_by: str) -> None:
         with self._pool.connection() as conn:
+            # FOR UPDATE locks nothing when the scope does not exist yet, so two first opens could
+            # both read "no limit". The advisory lock serialises every open of one scope.
+            conn.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (f"scope:{scope}",))
             old_row = conn.execute(
                 "SELECT limit_amount FROM budget_scopes WHERE scope = %s FOR UPDATE", (scope,)
             ).fetchone()

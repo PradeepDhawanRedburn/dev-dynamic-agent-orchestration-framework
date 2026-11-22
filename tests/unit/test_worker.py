@@ -1,5 +1,6 @@
 """The worker (WP-03): a scripted model, fake tools and in-memory stores. No model, no database."""
 
+import asyncio
 import json
 from decimal import Decimal
 from typing import Any
@@ -11,7 +12,7 @@ from langchain_core.messages import AIMessage
 
 from orchestrator.contracts import AgentSpecification, AgentStatus, Classification
 from orchestrator.graph.worker import SpecialistOutcome, run_specialist
-from orchestrator.tools.gateway import evidence_id_for, idempotency_key
+from orchestrator.tools.gateway import AgentStopped, evidence_id_for, idempotency_key
 from tests.conftest import run_async
 from tests.scripted import specialist_output_args, tool_call_message
 from tests.worker_env import RESERVATION, WorkerEnv, budget, grant, make_env, make_spec, make_task
@@ -240,13 +241,34 @@ def test_a_transient_model_failure_is_retried_and_then_succeeds(env: WorkerEnv) 
     assert env.models[0].calls == 2
 
 
-def test_a_model_that_keeps_failing_is_retried_a_bounded_number_of_times_then_raised(
+def test_a_model_that_keeps_failing_ends_in_a_failed_outcome_and_the_spend_is_settled(
     env: WorkerEnv,
 ) -> None:
-    spec = make_spec(tools=[])  # max_retries is 2: one try and two retries
-    with pytest.raises(ConnectionError):
-        run(env, spec, [ConnectionError("down")])
-    assert env.models[0].calls == 3
+    spec = make_spec(tools=[grant()])  # max_retries is 2: one try and two retries
+    outcome, audit, registry = run(
+        env,
+        spec,
+        [
+            tool_call_message("fake_search", SEARCH_ARGS, input_tokens=100, output_tokens=50),
+            ConnectionError("down: secret detail"),
+        ],
+    )
+    assert env.models[0].calls == 4, "one good call, then one try and two retries that failed"
+    assert outcome.status == "failed" and outcome.result is None
+    assert outcome.error == "ConnectionError", "the type name, never the message"
+    assert "secret detail" not in json.dumps(outcome.model_dump(mode="json"))
+    assert audit[-1] == "worker.unhandled_failure" and registry is AgentStatus.FAILED
+    events = run_async(env.stores.audit.events(kind="worker.unhandled_failure"))
+    assert dict(events[0].details)["error_type"] == "ConnectionError"
+    assert "secret detail" not in json.dumps(dict(events[0].details))
+    expected = env.catalogue.cost("reasoning-standard", 100, 50)
+
+    async def reservation() -> tuple[str, Decimal | None]:
+        record = await env.stores.ledger.reservation(RESERVATION)
+        return record.state, record.settled_amount
+
+    assert run_async(reservation()) == ("settled", expected)
+    assert outcome.usage.cost == expected
 
 
 def test_a_model_refusal_is_a_failure_not_an_answer(env: WorkerEnv) -> None:
@@ -319,6 +341,105 @@ def test_a_suspended_agent_keeps_its_status_and_the_outcome_says_suspended(
     outcome, status = run_async(scenario())
     assert outcome.status == "suspended" and status is AgentStatus.SUSPENDED
     assert env.search.calls == 0
+
+
+# ------------------------------------------------------------------ a stop reaches a running agent
+def run_with_suspension_on_first_model_call(
+    env: WorkerEnv, spec: AgentSpecification, reply: AIMessage, *, then: list[Any]
+) -> tuple[SpecialistOutcome, list[str], AgentStatus]:
+    """The agent is suspended while the model is mid-run: the first model call suspends it from a
+    worker thread (as a Guardrail Manager's suspension would arrive), then answers with `reply`."""
+
+    async def scenario() -> tuple[SpecialistOutcome, list[str], AgentStatus]:
+        loop = asyncio.get_running_loop()
+        await env.add_agent(spec, AgentStatus.ASSIGNED)
+
+        def suspend_then_reply() -> AIMessage:
+            asyncio.run_coroutine_threadsafe(
+                env.stores.registry.transition(spec.agent_id, AgentStatus.SUSPENDED), loop
+            ).result(timeout=10)
+            return reply
+
+        env.script = [suspend_then_reply, *then]
+        outcome = await run_specialist(env.deps, spec, make_task(spec), reservation_id=RESERVATION)
+        audit = [e.kind for e in await env.stores.audit.events(agent_id=spec.agent_id)]
+        return outcome, audit, (await env.stores.registry.get(spec.agent_id)).status
+
+    return run_async(scenario())
+
+
+def test_a_suspension_during_a_run_stops_the_next_tool_call_and_ends_the_run_suspended(
+    env: WorkerEnv,
+) -> None:
+    spec = make_spec(tools=[grant()])
+    call = tool_call_message("fake_search", SEARCH_ARGS, input_tokens=100, output_tokens=50)
+    outcome, audit, registry = run_with_suspension_on_first_model_call(
+        env, spec, call, then=[final_answer(spec)]
+    )
+    assert outcome.status == "suspended" and outcome.error == "suspended"
+    assert env.search.calls == 0, "the tool never ran"
+    assert env.models[0].calls == 1, "the run did not go on to a second model call"
+    assert audit == ["tool.denied"] and registry is AgentStatus.SUSPENDED
+    assert outcome.result is None
+    assert outcome.usage.cost == env.catalogue.cost("reasoning-standard", 100, 50)
+
+
+def test_a_suspension_during_a_run_stops_the_next_model_call_even_without_a_tool_call(
+    env: WorkerEnv,
+) -> None:
+    spec = make_spec(tools=[])
+    bad = tool_call_message("SpecialistOutput", {"executive_summary": "only this"})
+    outcome, _, registry = run_with_suspension_on_first_model_call(env, spec, bad, then=[bad])
+    assert outcome.status == "suspended" and registry is AgentStatus.SUSPENDED
+    assert env.models[0].calls == 1, "no prompt was sent after the suspension"
+
+
+def test_a_stop_is_not_turned_into_tool_error_content() -> None:
+    from orchestrator.graph.middleware import tool_error_content
+
+    class Request:
+        tool_call = {"name": "fake_search"}
+
+    assert tool_error_content(AgentStopped("suspended"), Request()) is None  # type: ignore[arg-type]
+    content = tool_error_content(ValueError("secret"), Request())  # type: ignore[arg-type]
+    assert content is not None and "ValueError" in content and "secret" not in content
+
+
+def test_the_request_timeout_comes_from_the_specification(env: WorkerEnv) -> None:
+    spec = make_spec(tools=[], budget=budget(timeout_seconds=17))
+    run(env, spec, [plain_answer()])
+    assert env.timeouts == [17.0]
+
+
+def test_spend_is_not_acknowledged_until_the_ledger_has_it(env: WorkerEnv) -> None:
+    from orchestrator.graph.worker import _settle
+
+    spec = make_spec(tools=[])
+    ledger = env.stores.ledger
+    real = ledger.settle
+    failures = {"left": 1}
+
+    async def flaky(reservation_id: str, usage: Any) -> None:
+        if failures["left"]:
+            failures["left"] -= 1
+            raise RuntimeError("database unavailable")
+        await real(reservation_id, usage)
+
+    async def scenario() -> tuple[Decimal | None, Decimal]:
+        await env.add_agent(spec)
+        meter = env.deps.meters.for_agent(spec.agent_id, "reasoning-standard", spec.budget)
+        meter.record_model_call(1000, 500)
+        ledger.settle = flaky  # type: ignore[method-assign]
+        with pytest.raises(RuntimeError):
+            await _settle(env.deps, spec, RESERVATION)
+        await _settle(env.deps, spec, RESERVATION)
+        return (await real_reservation()).settled_amount, meter.usage().cost
+
+    async def real_reservation() -> Any:
+        return await env.stores.ledger.reservation(RESERVATION)
+
+    settled, spent = run_async(scenario())
+    assert settled == spent and spent > 0, "the failed attempt did not drop the spend"
 
 
 # ------------------------------------------------------------------ revisions

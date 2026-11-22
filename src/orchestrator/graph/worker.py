@@ -22,7 +22,7 @@ from langchain.agents import create_agent
 from langchain.agents.structured_output import ToolStrategy
 from langchain_core.exceptions import ModelRefusalError
 from langchain_core.language_models import BaseChatModel
-from pydantic import ValidationError
+from pydantic import JsonValue, ValidationError
 
 from orchestrator.contracts import (
     AgentResult,
@@ -35,6 +35,7 @@ from orchestrator.contracts import (
 )
 from orchestrator.governance.budget import ReservationClosed
 from orchestrator.governance.metering import MeterBook, UsageMeter
+from orchestrator.governance.pii import redact_output
 from orchestrator.governance.resilience import SelfHealer
 from orchestrator.graph.middleware import (
     ValidationCounter,
@@ -51,11 +52,15 @@ ACTOR = "system:worker"
 OutcomeStatus = Literal[
     "awaiting_review", "failed", "timed_out", "cancelled", "blocked_budget", "suspended"
 ]
-ModelFactory = Callable[[ModelEntry, int], BaseChatModel]
+ModelFactory = Callable[[ModelEntry, int, float], BaseChatModel]
 
 
-def foundry_model_factory(entry: ModelEntry, max_output_tokens: int) -> BaseChatModel:
-    return build_chat_model(entry, max_output_tokens=max_output_tokens)
+def foundry_model_factory(
+    entry: ModelEntry, max_output_tokens: int, timeout_seconds: float
+) -> BaseChatModel:
+    return build_chat_model(
+        entry, max_output_tokens=max_output_tokens, timeout_seconds=timeout_seconds
+    )
 
 
 class SpecialistOutcome(Contract):
@@ -100,7 +105,9 @@ def task_message(task: Task, revision: int, comments: list[str]) -> str:
     return "\n".join(lines)
 
 
-async def _audit(deps: WorkerDeps, kind: str, spec: AgentSpecification, **details: str) -> None:
+async def _audit(
+    deps: WorkerDeps, kind: str, spec: AgentSpecification, **details: JsonValue
+) -> None:
     await deps.stores.audit.append(
         kind,
         actor=ACTOR,
@@ -127,13 +134,14 @@ async def build_specialist(deps: WorkerDeps, spec: AgentSpecification) -> tuple[
     """Assemble the agent. Raises `AgentStopped` if it must not run."""
     entry = await _check_before_build(deps, spec)
     meter = deps.meters.for_agent(spec.agent_id, spec.model.deployment, spec.budget)
+    timeout = float(spec.budget.timeout_seconds)
     fallbacks: list[BaseChatModel] = []
     if entry.fallback:
         fallback_entry = deps.catalogue.check_clearance(entry.fallback, spec.clearance)
-        fallbacks.append(deps.model_factory(fallback_entry, spec.model.max_output_tokens))
+        fallbacks.append(deps.model_factory(fallback_entry, spec.model.max_output_tokens, timeout))
     gateway = deps.gateway
     agent = create_agent(
-        model=deps.model_factory(entry, spec.model.max_output_tokens),
+        model=deps.model_factory(entry, spec.model.max_output_tokens, timeout),
         tools=[bind_tool(spec, grant, gateway) for grant in spec.tools],
         system_prompt=spec.prompt.rendered,
         response_format=ToolStrategy(SpecialistOutput, handle_errors=ValidationCounter(meter)),
@@ -150,30 +158,44 @@ async def build_specialist(deps: WorkerDeps, spec: AgentSpecification) -> tuple[
     return agent, meter
 
 
-async def _conclude(
-    deps: WorkerDeps,
-    spec: AgentSpecification,
-    reservation_id: str,
-    status: OutcomeStatus,
-    registry_status: AgentStatus,
-    *,
-    started: float,
-    result: AgentResult | None = None,
-    error: str | None = None,
+@dataclass
+class _Verdict:
+    """What a run came to, before it is settled and recorded."""
+
+    status: OutcomeStatus
+    registry_status: AgentStatus
+    result: AgentResult | None = None
+    error: str | None = None
+
+
+async def _settle(deps: WorkerDeps, spec: AgentSpecification, reservation_id: str) -> None:
+    """Charge what this run spent against its reservation. The meter is told only after the
+    ledger has it, so a settlement that fails is tried again and the spend is never dropped."""
+    meter = deps.meters.get(spec.agent_id)
+    if meter is None:
+        return
+    delta, mark = meter.unsettled()
+    try:
+        await deps.stores.ledger.settle(reservation_id, delta)
+    except ReservationClosed:
+        await _audit(deps, "budget.settle_refused", spec, reservation=reservation_id)
+        return
+    meter.acknowledge(mark)
+
+
+async def _outcome(
+    deps: WorkerDeps, spec: AgentSpecification, verdict: _Verdict, started: float
 ) -> SpecialistOutcome:
     meter = deps.meters.get(spec.agent_id)
     usage = meter.usage() if meter else Usage()
     usage = usage.model_copy(update={"elapsed_seconds": time.monotonic() - started})
-    if meter is not None:
-        try:
-            await deps.stores.ledger.settle(reservation_id, meter.take_unsettled())
-        except ReservationClosed:
-            await _audit(deps, "budget.settle_refused", spec, reservation=reservation_id)
+    status = verdict.status
     current = (await deps.stores.registry.get(spec.agent_id)).status
     if current is AgentStatus.SUSPENDED:
         status = "suspended"
-    elif current is not registry_status and current is AgentStatus.RUNNING:
-        await deps.stores.registry.transition(spec.agent_id, registry_status)
+    elif current is AgentStatus.RUNNING:
+        await deps.stores.registry.transition(spec.agent_id, verdict.registry_status)
+    result = verdict.result
     if result is not None:
         result = result.model_copy(update={"usage": usage})
     return SpecialistOutcome(
@@ -181,7 +203,7 @@ async def _conclude(
         agent_id=spec.agent_id,
         status=status,
         result=result,
-        error=error,
+        error=verdict.error,
         usage=usage,
     )
 
@@ -195,48 +217,49 @@ async def run_specialist(
     revision: int = 0,
     comments: list[str] | None = None,
 ) -> SpecialistOutcome:
-    """Run one specialist to an outcome. Idempotent where it writes: audit events are the only
-    repeat-sensitive writes, and a resumed node only adds to the record."""
+    """Run one specialist to an outcome. Every path ends in one: an exception nobody planned for
+    becomes outcome `failed` (the error is the exception's type name, never its message), and
+    the spend is settled in a `finally`, so no path leaves the reservation open.
+
+    Idempotent where it writes: audit events are the only repeat-sensitive writes, and a resumed
+    node only adds to the record."""
     started = time.monotonic()
-
-    async def finish(
-        status: OutcomeStatus,
-        registry_status: AgentStatus,
-        *,
-        result: AgentResult | None = None,
-        error: str | None = None,
-    ) -> SpecialistOutcome:
-        return await _conclude(
+    try:
+        verdict = await _attempt(deps, spec, task, revision, comments or [])
+    except Exception as exc:
+        verdict = _Verdict("failed", AgentStatus.FAILED, error=type(exc).__name__)
+        await _audit(
             deps,
+            "worker.unhandled_failure",
             spec,
-            reservation_id,
-            status,
-            registry_status,
-            started=started,
-            result=result,
-            error=error,
+            error_type=type(exc).__name__,
+            model=spec.model.deployment,
         )
+    finally:
+        await _settle(deps, spec, reservation_id)
+    return await _outcome(deps, spec, verdict, started)
 
+
+async def _attempt(
+    deps: WorkerDeps,
+    spec: AgentSpecification,
+    task: Task,
+    revision: int,
+    comments: list[str],
+) -> _Verdict:
     current = (await deps.stores.registry.get(spec.agent_id)).status
     if current is AgentStatus.SUSPENDED:
-        return await finish("suspended", AgentStatus.SUSPENDED, error="suspended")
+        return _Verdict("suspended", AgentStatus.SUSPENDED, error="suspended")
     if current is not AgentStatus.RUNNING:
         if current not in (AgentStatus.ASSIGNED, AgentStatus.REVISION_REQUESTED):
-            return await finish("failed", AgentStatus.FAILED, error=f"not runnable: {current}")
+            return _Verdict("failed", AgentStatus.FAILED, error=f"not runnable: {current}")
         await deps.stores.registry.transition(spec.agent_id, AgentStatus.RUNNING)
 
     try:
         agent, _ = await build_specialist(deps, spec)
         async with asyncio.timeout(spec.budget.timeout_seconds):
             final = await agent.ainvoke(  # type: ignore[attr-defined]
-                {
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": task_message(task, revision, comments or []),
-                        }
-                    ]
-                },
+                {"messages": [{"role": "user", "content": task_message(task, revision, comments)}]},
                 config={
                     "run_name": f"specialist:{spec.role_title}",
                     "metadata": {
@@ -251,28 +274,40 @@ async def run_specialist(
             )
     except AgentStopped as stop:
         if stop.reason == "cancelled":
-            return await finish("cancelled", AgentStatus.CANCELLED, error="cancelled")
+            return _Verdict("cancelled", AgentStatus.CANCELLED, error="cancelled")
         if stop.reason == "suspended":
-            return await finish("suspended", AgentStatus.SUSPENDED, error="suspended")
+            return _Verdict("suspended", AgentStatus.SUSPENDED, error="suspended")
         if stop.reason.startswith("budget:"):
-            return await finish("blocked_budget", AgentStatus.FAILED, error=stop.reason)
-        return await finish("failed", AgentStatus.FAILED, error=f"stopped: {stop.reason}")
+            return _Verdict("blocked_budget", AgentStatus.FAILED, error=stop.reason)
+        return _Verdict("failed", AgentStatus.FAILED, error=f"stopped: {stop.reason}")
     except TimeoutError:
-        return await finish("timed_out", AgentStatus.TIMED_OUT, error="timed out")
+        return _Verdict("timed_out", AgentStatus.TIMED_OUT, error="timed out")
     except ModelRefusalError:
         await _audit(deps, "guardrail.model_refusal", spec, model=spec.model.deployment)
-        return await finish("failed", AgentStatus.FAILED, error="model_refusal")
+        return _Verdict("failed", AgentStatus.FAILED, error="model_refusal")
     except Exception as exc:
-        if is_content_filter_block(exc):
-            # Never retried: the prompt itself was refused. The task fails to its Lead.
-            await _audit(deps, "guardrail.content_filter_block", spec, model=spec.model.deployment)
-            return await finish("failed", AgentStatus.FAILED, error="content_filter_blocked")
-        raise
+        if not is_content_filter_block(exc):
+            raise
+        # Never retried: the prompt itself was refused. The task fails to its Lead.
+        await _audit(deps, "guardrail.content_filter_block", spec, model=spec.model.deployment)
+        return _Verdict("failed", AgentStatus.FAILED, error="content_filter_blocked")
 
     output = final.get("structured_response")
     if not isinstance(output, SpecialistOutput):
-        return await finish(
-            "failed", AgentStatus.FAILED, error="no structured output within limits"
+        return _Verdict("failed", AgentStatus.FAILED, error="no structured output within limits")
+    try:
+        output, report = redact_output(output)
+    except ValidationError:
+        # Failing closed: a redacted field no longer fits its schema, so nothing leaves unredacted.
+        await _audit(deps, "guardrail.pii_redaction_failed", spec)
+        return _Verdict("failed", AgentStatus.FAILED, error="pii_redaction_failed")
+    if report.redacted:
+        await _audit(
+            deps,
+            "guardrail.pii_redacted",
+            spec,
+            counts=dict(report.counts),
+            fields=list(report.fields),
         )
     try:
         result = AgentResult(
@@ -285,7 +320,7 @@ async def run_specialist(
         )
     except ValidationError as exc:
         await _audit(deps, "result.invalid_citation", spec)
-        return await finish(
+        return _Verdict(
             "failed", AgentStatus.FAILED, error=f"invalid result: {exc.error_count()} error(s)"
         )
-    return await finish("awaiting_review", AgentStatus.AWAITING_REVIEW, result=result)
+    return _Verdict("awaiting_review", AgentStatus.AWAITING_REVIEW, result=result)

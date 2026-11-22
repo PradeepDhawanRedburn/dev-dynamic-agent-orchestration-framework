@@ -9,6 +9,7 @@ from orchestrator.contracts import AgentSpecification, AgentStatus, ToolPermissi
 from orchestrator.tools.gateway import (
     AgentStopped,
     ToolGateway,
+    bind_tool,
     evidence_id_for,
     idempotency_key,
 )
@@ -155,13 +156,72 @@ def test_the_kill_switch_stops_a_call_before_anything_else(env: WorkerEnv) -> No
     spec = make_spec(tools=[g])
     env.kill.kill_agent(spec.agent_id)
 
-    async def scenario() -> None:
+    async def scenario() -> list[str]:
         await env.add_agent(spec, AgentStatus.RUNNING)
         with pytest.raises(AgentStopped, match="cancelled"):
             await gateway_for(env, spec).call(spec, g, {"query": "x"})
+        return await kinds(env, spec)
 
-    run_async(scenario())
+    assert run_async(scenario()) == ["tool.denied"], "a refused call is audited"
     assert env.search.calls == 0
+
+
+def test_a_malformed_call_through_the_bound_tool_still_reaches_the_gateway(
+    env: WorkerEnv,
+) -> None:
+    """The model's tool must not validate the arguments itself, or a malformed call would be
+    neither counted nor audited."""
+    g = grant()
+    spec = make_spec(tools=[g])
+
+    async def scenario() -> tuple[str, int, list[str]]:
+        await env.add_agent(spec, AgentStatus.RUNNING)
+        tool = bind_tool(spec, g, gateway_for(env, spec))
+        reply = await tool.ainvoke({"query": "", "extra": "x"})
+        return (
+            str(reply),
+            await env.stores.counters.count(spec.agent_id, "fake_search"),
+            await kinds(env, spec),
+        )
+
+    reply, counted, audit = run_async(scenario())
+    assert json.loads(reply)["error"] == "invalid_arguments"
+    assert counted == 1 and audit == ["tool.invalid_arguments"]
+
+
+def test_the_model_is_still_shown_the_tools_own_schema() -> None:
+    env = make_env()
+    spec = make_spec(tools=[grant()])
+    tool = bind_tool(spec, grant(), env.deps.gateway)
+    schema = tool.tool_call_schema
+    properties = schema["properties"] if isinstance(schema, dict) else {}
+    assert properties["query"]["maxLength"] == 200
+
+
+def test_a_source_that_changed_between_two_identical_calls_is_not_cited_under_the_old_id() -> None:
+    class Changing(FakeSearch):
+        async def run(self, args: dict[str, Any], ctx: dict[str, Any]) -> dict[str, Any]:
+            self.calls += 1
+            return {"items": [{**DEFAULT_ITEM, "text": f"version {self.calls} of the page"}]}
+
+    env = make_env(search=Changing())
+    g = grant()
+    spec = make_spec(tools=[g])
+
+    async def scenario() -> tuple[str, str, list[str]]:
+        await env.add_agent(spec, AgentStatus.RUNNING)
+        gateway = gateway_for(env, spec)
+        first = await gateway.call(spec, g, {"query": "same"})
+        second = await gateway.call(spec, g, {"query": "same"})
+        return first, second, await kinds(env, spec)
+
+    first, second, audit = run_async(scenario())
+    assert "evidence_id" in json.loads(first)["items"][0]
+    assert json.loads(second)["items"] == [
+        {"withheld": "the source changed since it was first captured"}
+    ]
+    assert "version 2" not in second
+    assert "tool.evidence_changed" in audit
 
 
 def test_arguments_that_do_not_match_the_tools_schema_are_refused_with_field_names_only(

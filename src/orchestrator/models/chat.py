@@ -49,5 +49,6 @@ def build_chat_model(
         reasoning_effort=entry.reasoning_effort,
         max_tokens=max_output_tokens,
         max_retries=0,
+        timeout=timeout_seconds,
     )
     return chat
