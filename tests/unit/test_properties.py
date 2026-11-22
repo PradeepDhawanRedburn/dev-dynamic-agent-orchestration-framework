@@ -17,7 +17,13 @@ from orchestrator.contracts import (
     Usage,
     assert_transition,
 )
-from orchestrator.governance.budget import BudgetExceeded, BudgetLedger, InMemoryLedger
+from orchestrator.governance.budget import (
+    BudgetExceeded,
+    BudgetLedger,
+    InMemoryLedger,
+    ReservationClosed,
+    ReservationRecord,
+)
 from orchestrator.governance.recruiter import InMemoryAgentRegistry
 from orchestrator.persistence.audit import (
     GENESIS_HASH,
@@ -152,7 +158,7 @@ def run_operations(ledger: BudgetLedger, ops: list[tuple[Any, ...]], prefix: str
     its limit, so the ledger is only ever told a cost within the reservation."""
     scoped = {f"{prefix}{scope}": limit for scope, limit in LIMITS.items()}
     for scope, limit in scoped.items():
-        ledger.open_scope(scope, limit)
+        ledger.open_scope(scope, limit, changed_by="system:property-test")
     reserved: dict[str, Decimal] = {}
     log: list[Any] = []
     for kind, index, extra, amount in ops:
@@ -170,7 +176,7 @@ def run_operations(ledger: BudgetLedger, ops: list[tuple[Any, ...]], prefix: str
             log.append(("ok", kind))
         except BudgetExceeded as error:
             log.append(("exceeded", error.scope.removeprefix(prefix), error.limit, error.attempted))
-        except KeyError:
+        except (KeyError, ReservationClosed):
             log.append(("unknown", kind))
         for scope, limit in scoped.items():
             snap = ledger.snapshot(scope)
@@ -190,8 +196,10 @@ class OverspendingLedger(InMemoryLedger):
     """A ledger with the limit check removed, to prove the property above can fail."""
 
     def reserve(self, reservation_id: str, chain: list[str], amount: Decimal) -> None:
-        if reservation_id not in self._reservations and reservation_id not in self._settled:
-            self._reservations[reservation_id] = (chain, amount)
+        if reservation_id not in self._records:
+            self._records[reservation_id] = ReservationRecord(
+                reservation_id=reservation_id, chain=chain, amount=amount, state="reserved"
+            )
 
 
 def test_the_ledger_property_catches_a_ledger_that_overspends() -> None:

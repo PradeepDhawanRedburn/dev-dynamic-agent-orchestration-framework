@@ -45,6 +45,9 @@ jobs:
       - name: Agent definitions
         run: python3 scripts/check_agents.py
 
+      - name: Text files are UTF-8, no BOM, LF
+        run: python3 scripts/check_text_files.py
+
       - name: Dependency licence list is current
         run: |
           uv run --locked python scripts/generate_dependency_licences.py

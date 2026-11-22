@@ -1,0 +1,343 @@
+{
+  "ai-specialist": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "ai-specialist.agent.md": "1.1.0",
+      "skills/ai-evaluation-and-risk.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "0690bade483cf85dcb826283db57b58ecd880cce5d0f25718e0e51de4ccf9327",
+    "skills_loaded": [
+      "ai-evaluation-and-risk@1.0.0"
+    ],
+    "skills_skipped": [
+      "approved-ai-models-and-standards"
+    ],
+    "version": "1.1.0"
+  },
+  "cto-agent": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "cto-agent.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "5a2d74a79653aa9a109a2f1639a3d552473cfeffa74d19d30ddba90fe6c71d17",
+    "skills_loaded": [],
+    "skills_skipped": [
+      "engineering-principles"
+    ],
+    "version": "1.0.0"
+  },
+  "delivery-controller": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "delivery-controller.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-small",
+    "sha256": "a50a01f38c1e345407759e6d337d5b9d113c97dfd4f2b8b762a629ac5a9dd7c9",
+    "skills_loaded": [],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "guardrail-manager--business-research": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "guardrail-manager.agent.md": "1.0.0",
+      "profiles/business-research.md": "1.0.0",
+      "skills/guardrail-judgement.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "20095953d70a134d497bd796fe19ce52466a374b1c9e41394695c58735e272da",
+    "skills_loaded": [
+      "guardrail-judgement@1.0.0"
+    ],
+    "skills_skipped": [
+      "security-and-data-policy"
+    ],
+    "version": "1.0.0"
+  },
+  "guardrail-manager--data": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "guardrail-manager.agent.md": "1.0.0",
+      "profiles/data.md": "1.0.0",
+      "skills/guardrail-judgement.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "4d564fe481bb479e6cd6d219007cabbbb4d04e0521ff2179164f555ac02ed453",
+    "skills_loaded": [
+      "guardrail-judgement@1.0.0"
+    ],
+    "skills_skipped": [
+      "security-and-data-policy"
+    ],
+    "version": "1.0.0"
+  },
+  "guardrail-manager--devops": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "guardrail-manager.agent.md": "1.0.0",
+      "profiles/devops.md": "1.0.0",
+      "skills/guardrail-judgement.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "a396652e81bce329db6abda76393af10c9b57769e1f40c813ad7e299743809e4",
+    "skills_loaded": [
+      "guardrail-judgement@1.0.0"
+    ],
+    "skills_skipped": [
+      "security-and-data-policy"
+    ],
+    "version": "1.0.0"
+  },
+  "guardrail-manager--security": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "guardrail-manager.agent.md": "1.0.0",
+      "profiles/security.md": "1.0.0",
+      "skills/guardrail-judgement.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "cbb4304d94bf41a97af362ea672f7e588ea7b68542eba1919d59a67b38442fa4",
+    "skills_loaded": [
+      "guardrail-judgement@1.0.0"
+    ],
+    "skills_skipped": [
+      "security-and-data-policy"
+    ],
+    "version": "1.0.0"
+  },
+  "guardrail-manager--software": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "guardrail-manager.agent.md": "1.0.0",
+      "profiles/software.md": "1.0.0",
+      "skills/guardrail-judgement.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "c89fd52765d5758f5d3e9c1b627ccca32a1777fd0ef53db8a1c6c637a6a45b01",
+    "skills_loaded": [
+      "guardrail-judgement@1.0.0"
+    ],
+    "skills_skipped": [
+      "security-and-data-policy"
+    ],
+    "version": "1.0.0"
+  },
+  "head-of-delivery": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "head-of-delivery.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "7eb311f134f97b31807693d83a555fc979bb10c6a936727e18a17ebfe088a495",
+    "skills_loaded": [],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "knowledge-steward": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "knowledge-steward.agent.md": "1.0.0",
+      "skills/retrospective.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "6cb7b6fad50fe8d85d88a78a1704886e01735a11c1b0a55fe2446d494ce328e0",
+    "skills_loaded": [
+      "retrospective@1.0.0"
+    ],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "lead--business-research": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "lead.agent.md": "1.1.0",
+      "profiles/business-research.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "09cf544b5739463170c0312a61e0dcdf53486a6f391b5b2f06bfa91fa0250891",
+    "skills_loaded": [],
+    "skills_skipped": [],
+    "version": "1.1.0"
+  },
+  "lead--data": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "lead.agent.md": "1.1.0",
+      "profiles/data.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "dec1ec6c3d6f2cfd497433a7ee3a9a42c55662844de119f503838a35fffe95bf",
+    "skills_loaded": [],
+    "skills_skipped": [],
+    "version": "1.1.0"
+  },
+  "lead--devops": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "lead.agent.md": "1.1.0",
+      "profiles/devops.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "a0d53d8127cb3eaa3e3146a2856fb2a9edabe19e8ba8296a378a0e47c532ace1",
+    "skills_loaded": [],
+    "skills_skipped": [],
+    "version": "1.1.0"
+  },
+  "lead--security": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "lead.agent.md": "1.1.0",
+      "profiles/security.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "0dda875109a0e1c0f3e28405d117bec4c93d029e36480be0ef839c7925037a39",
+    "skills_loaded": [],
+    "skills_skipped": [],
+    "version": "1.1.0"
+  },
+  "lead--software": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "lead.agent.md": "1.1.0",
+      "profiles/software.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "7636b3d11a88535b0e4d7567d4f0f359f455c5e72b54efbcfacc2cc4028dc1a7",
+    "skills_loaded": [],
+    "skills_skipped": [],
+    "version": "1.1.0"
+  },
+  "product-manager": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "product-manager.agent.md": "1.1.0",
+      "skills/requirement-framing.md": "1.1.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "f840e4f5ac2687bd80b543addd34f55e051ff4d068e7201b734ae246f0c6ac81",
+    "skills_loaded": [
+      "requirement-framing@1.1.0"
+    ],
+    "skills_skipped": [],
+    "version": "1.1.0"
+  },
+  "recruiter": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "recruiter.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-small",
+    "sha256": "2b1a82429f9fae79a68b9986e57eb0eb709b83c3065ffe105a0d1aa14df082d2",
+    "skills_loaded": [],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "reviewer": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "reviewer.agent.md": "1.0.0",
+      "skills/independent-review.md": "1.0.0"
+    },
+    "model_key": "reasoning-alternate",
+    "sha256": "037e92614eb1eb01916e672d3c0a024c383a1366e455e753359f2cbf32b66728",
+    "skills_loaded": [
+      "independent-review@1.0.0"
+    ],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "solution-architect": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "skills/solution-design.md": "1.0.0",
+      "solution-architect.agent.md": "1.1.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "a0d894fc338aa31350e58ca79e7e94a35c54cb5016b0d9c93bb111b3db92b152",
+    "skills_loaded": [
+      "solution-design@1.0.0"
+    ],
+    "skills_skipped": [
+      "engineering-principles",
+      "azure-reference-architecture"
+    ],
+    "version": "1.1.0"
+  },
+  "tester--business-research": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "profiles/business-research.md": "1.0.0",
+      "skills/test-design.md": "1.0.0",
+      "tester.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "a420438fece0117f016cbae4ecb35cbaa08990e5f08995ea91fecf1d8a0bddad",
+    "skills_loaded": [
+      "test-design@1.0.0"
+    ],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "tester--data": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "profiles/data.md": "1.0.0",
+      "skills/test-design.md": "1.0.0",
+      "tester.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "3c4836f2e5332aac0afae8679fd8dfe3ed2cbeed93320d0663b9703e39be3966",
+    "skills_loaded": [
+      "test-design@1.0.0"
+    ],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "tester--devops": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "profiles/devops.md": "1.0.0",
+      "skills/test-design.md": "1.0.0",
+      "tester.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "58b4a895869d67997d662e7c8f57bff0989d953082925e16c59d3715c6ee945d",
+    "skills_loaded": [
+      "test-design@1.0.0"
+    ],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "tester--security": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "profiles/security.md": "1.0.0",
+      "skills/test-design.md": "1.0.0",
+      "tester.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "26969db654867cd071feb326d380cd743ef5c1d3f932500585b89792bd39959e",
+    "skills_loaded": [
+      "test-design@1.0.0"
+    ],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  },
+  "tester--software": {
+    "file_versions": {
+      "_shared/organisational-policy.md": "1.0.0",
+      "profiles/software.md": "1.0.0",
+      "skills/test-design.md": "1.0.0",
+      "tester.agent.md": "1.0.0"
+    },
+    "model_key": "reasoning-standard",
+    "sha256": "da6090434be208c44471e39cfa1be26b6c999957facedc7de5642187310c93a6",
+    "skills_loaded": [
+      "test-design@1.0.0"
+    ],
+    "skills_skipped": [],
+    "version": "1.0.0"
+  }
+}

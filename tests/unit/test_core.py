@@ -235,8 +235,8 @@ def test_tampered_prompt_fails_hash() -> None:
 
 def test_ledger_chain_idempotency_and_states() -> None:
     L = InMemoryLedger()
-    L.open_scope("prj", Decimal("10"))
-    L.open_scope("prj/ws", Decimal("6"))
+    L.open_scope("prj", Decimal("10"), changed_by="system:test")
+    L.open_scope("prj/ws", Decimal("6"), changed_by="system:test")
     L.reserve("r1", ["prj", "prj/ws"], Decimal("4"))
     L.reserve("r1", ["prj", "prj/ws"], Decimal("4"))
     assert L.snapshot("prj/ws").reserved == Decimal("4")

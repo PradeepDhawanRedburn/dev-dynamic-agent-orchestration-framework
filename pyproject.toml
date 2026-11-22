@@ -13,6 +13,7 @@ dependencies = [
     "psycopg[binary]==3.3.9",
     "pycryptodome==4.5.0",
     "opentelemetry-api==1.45.2",
+    "pyyaml==6.0.4",
 ]
 
 [dependency-groups]
@@ -24,6 +25,7 @@ dev = [
     "langchain-azure-ai[opentelemetry]==1.2.3",
     "opentelemetry-sdk==1.45.2",
     "hypothesis==6.170.17",
+    "types-pyyaml==6.0.12.20261113",
 ]
 
 [build-system]
@@ -54,6 +56,12 @@ python_version = "3.13"
 strict = true
 files = ["src", "tests"]
 mypy_path = "src"
+
+# langchain-azure-ai ships no type information (checked 1.2.3); the factory in models/chat.py is
+# the one place that touches it and declares its own return type.
+[[tool.mypy.overrides]]
+module = ["langchain_azure_ai.*"]
+ignore_missing_imports = true
 
 # The WP-01 spike tests probe library behaviour with deliberately loose types and drive
 # untyped reference code. They are not production code; src/ and tests/unit stay strict.

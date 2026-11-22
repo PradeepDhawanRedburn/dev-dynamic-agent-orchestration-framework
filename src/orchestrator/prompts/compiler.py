@@ -17,6 +17,11 @@ from orchestrator.contracts import (
     SystemPromptSpecification,
     ToolPermission,
 )
+from orchestrator.prompts.location import (
+    AGENTS_DIRECTORY_VARIABLE,
+    AgentsDirectoryError,
+    agents_directory,
+)
 
 COMPILER_VERSION = "1.0.0"
 
@@ -32,13 +37,19 @@ _SECTION_VERSIONS = {
     "limits": "1.0.0",
     "escalation_and_completion": "1.0.0",
 }
-_SECTION_DIR = Path(__file__).resolve().parents[3] / "agents" / "_shared" / "compiler_sections"
+_SECTION_DIR_NAME = Path("_shared") / "compiler_sections"
 
 
 def _load_sections() -> list[tuple[str, str, str]]:
+    """Read at import, so a wrong ORCHESTRATOR_AGENTS_DIR stops the process at startup."""
+    section_dir = agents_directory() / _SECTION_DIR_NAME
     loaded: list[tuple[str, str, str]] = []
     for name, version in _SECTION_VERSIONS.items():
-        path = _SECTION_DIR / f"{name}.md"
+        path = section_dir / f"{name}.md"
+        if not path.is_file():
+            raise AgentsDirectoryError(
+                f"Prompt section file not found: {path}. Check {AGENTS_DIRECTORY_VARIABLE}."
+            )
         loaded.append((name, version, path.read_text(encoding="utf-8").strip()))
     return loaded
 

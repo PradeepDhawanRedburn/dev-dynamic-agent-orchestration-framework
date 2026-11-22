@@ -13,6 +13,7 @@ from orchestrator.governance.approvals import DecisionRegister, InMemoryDecision
 from orchestrator.governance.budget import BudgetLedger, InMemoryLedger
 from orchestrator.governance.recruiter import AgentRegistry, InMemoryAgentRegistry
 from orchestrator.persistence.audit import AuditLog, InMemoryAuditLog
+from orchestrator.persistence.counters import InMemoryToolCallCounters, ToolCallCounters
 from orchestrator.persistence.db import Pool, open_pool
 from orchestrator.persistence.evidence import EvidenceStore, InMemoryEvidenceStore
 from orchestrator.persistence.migrate import apply_migrations
@@ -22,6 +23,7 @@ from orchestrator.persistence.repositories import (
     PostgresDecisionRegister,
     PostgresEvidenceStore,
     PostgresLedger,
+    PostgresToolCallCounters,
 )
 
 APP_ROLE = "orchestrator_app"
@@ -34,6 +36,7 @@ class Stores:
     evidence: EvidenceStore
     audit: AuditLog
     decisions: DecisionRegister
+    counters: ToolCallCounters
     backend: str
     dsn: str | None = None  # PostgreSQL only: the owner's DSN, for tests that simulate tampering
 
@@ -41,12 +44,14 @@ class Stores:
 @pytest.fixture(params=["memory", "postgres"])
 def stores(request: pytest.FixtureRequest) -> Iterator[Stores]:
     if request.param == "memory":
+        audit = InMemoryAuditLog()
         yield Stores(
-            InMemoryLedger(),
+            InMemoryLedger(audit=audit),
             InMemoryAgentRegistry(),
             InMemoryEvidenceStore(),
-            InMemoryAuditLog(),
+            audit,
             InMemoryDecisionRegister(),
+            InMemoryToolCallCounters(),
             "memory",
         )
         return
@@ -60,6 +65,7 @@ def stores(request: pytest.FixtureRequest) -> Iterator[Stores]:
             PostgresEvidenceStore(pool),
             PostgresAuditLog(pool),
             PostgresDecisionRegister(pool),
+            PostgresToolCallCounters(pool),
             "postgres",
             dsn,
         )
