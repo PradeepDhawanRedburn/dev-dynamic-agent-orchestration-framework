@@ -14,9 +14,9 @@ Permanent agents load their prompts from `agents/`, and a specialist can be buil
 - ADR-0025
 - ADR-0033
 - ADR-0034
-- ADR-0029 (Proposed; confirm before applying the middleware lists)
+- ADR-0029
 - docs/governance/lang-family-controls.md
-- ADR-0027 (Proposed; confirm it is accepted before task 5)
+- ADR-0027
 - agents/skills/README.md
 - docs/architecture/tool-catalogue.md
 - agents/README.md
@@ -30,6 +30,19 @@ Permanent agents load their prompts from `agents/`, and a specialist can be buil
 4. Provide two fake read-only tools that produce evidence records.
 5. Extend the loader to append role skills, skip any marked `needs-content`, and record which were loaded and skipped.
 6. Implement `model_catalogue_read` over the model catalogue.
+
+## Not blocked by open human actions
+
+The architect has decided that this work package proceeds without waiting for the actions below.
+Do not stop for them.
+
+| Open action | How this work package proceeds |
+| --- | --- |
+| H-01, H-02, H-03, H-04: organisation skills not written | They are marked `needs-content`. The loader skips them and records that it did. That is the designed behaviour and is tested here |
+| H-03, H-14: approved model list | Use a **provisional model catalogue** in configuration, holding the deployments named in `.env.example`. Mark every entry provisional, with the highest data classification set to Internal. The AI lead replaces it later; no code changes |
+| H-10: search service and egress allow-list | Not needed here; this work package uses two fake tools |
+| H-13: evaluation examples | Not needed here; prompts stay drafts |
+| H-27: key rotation | Not a blocker. Tests that need Foundry are skipped visibly when no key is present |
 
 ## Carried over from the review of WP-02
 
