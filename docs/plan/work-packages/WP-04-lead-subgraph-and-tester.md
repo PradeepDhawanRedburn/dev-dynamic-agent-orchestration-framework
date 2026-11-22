@@ -26,6 +26,7 @@ One Lead profile can decompose a workstream, staff it, and return tested, accept
 
 ## Acceptance criteria
 
+- [ ] Every state model added here is registered with the free-text rule and passes it; stores are reached only through the async facade (ADR-0034).
 - [ ] Whole-subgraph tests with a scripted model reproduce the scenario in `reference/lg/dryrun.py`: one revision forced by the evidence gate, one by the Tester, one re-staffing after an invalid citation.
 - [ ] A result without a passing test report cannot reach Accepted (tested).
 - [ ] Every loop stops at its ceiling (tested).

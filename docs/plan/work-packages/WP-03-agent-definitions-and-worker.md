@@ -13,6 +13,7 @@ Permanent agents load their prompts from `agents/`, and a specialist can be buil
 - ADR-0006
 - ADR-0025
 - ADR-0033
+- ADR-0034
 - ADR-0029 (Proposed; confirm before applying the middleware lists)
 - docs/governance/lang-family-controls.md
 - ADR-0027 (Proposed; confirm it is accepted before task 5)
@@ -30,8 +31,18 @@ Permanent agents load their prompts from `agents/`, and a specialist can be buil
 5. Extend the loader to append role skills, skip any marked `needs-content`, and record which were loaded and skipped.
 6. Implement `model_catalogue_read` over the model catalogue.
 
+## Carried over from the review of WP-02
+
+Done first, in this pull request (ADR-0034).
+
+- A second migration: released reservations are kept with state `released` and the application role loses DELETE on reservations; agent transitions are append-only; an agent's specification and request hash cannot be updated. Update the in-memory twins and tests to match.
+- A change to a budget limit writes an audit event naming who changed it.
+- Build the async facade over the stores. Add the test that fails when a module under the graph package imports a synchronous store.
+- Pool size and worker-thread count are configuration.
+
 ## Acceptance criteria
 
+- [ ] The carried-over items are done and tested; a released reservation is still readable after release.
 - [ ] A built specialist contains only allow-listed middleware, by class name, in the order in ADR-0033 (tested).
 - [ ] The model catalogue carries the fields in ADR-0033 point 9, and the API and reasoning effort used for a call come from it (tested).
 - [ ] A tool failure and a content-filter block each produce the outcome in ADR-0033, with no retry of a blocked prompt (tested).

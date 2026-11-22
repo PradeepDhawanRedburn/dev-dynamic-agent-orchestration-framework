@@ -41,5 +41,6 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0031](0031-questions-without-stopping-the-run.md) | Agents can ask a person a question without stopping the run | Accepted |
 | [0032](0032-human-override.md) | A person can override an agent, with a reason, on the record | Accepted |
 | [0033](0033-decisions-from-the-architecture-spike.md) | Decisions from the architecture spike | Accepted |
+| [0034](0034-store-access-and-limits-of-the-audit-record.md) | Store access from async nodes, and what the audit record proves | Accepted |
 
 New ADRs use [template.md](template.md).
