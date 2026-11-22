@@ -1,0 +1,60 @@
+# Provisional model catalogue (ADR-0033 point 9; WP-03).
+#
+# EVERY ENTRY IS PROVISIONAL. The approved model list is the AI lead's to supply (H-03, H-14);
+# replacing this file changes nothing in code. Deployments are the ones named in .env.example.
+# Nothing secret belongs here: the endpoint and key come from the environment.
+#
+# api: which API a call uses. gpt-6-luna and gpt-6.1-terra refuse function tools (so structured
+#      output) on chat completions and need `responses` (spike S-09, S-12). gpt-5-mini works on both.
+# api_version: `v1` or `preview`. Dated versions are rejected by the service (spike S-12).
+# reasoning_effort: lowest setting first (ADR-0033 point 11); raise it only where an evaluation
+#      shows it is needed. Reasoning tokens dominate the cost of a small call.
+# highest_classification: Internal for every provisional entry.
+# bands: money per 1,000 tokens. ILLUSTRATIVE PLACEHOLDERS for metering and budget tests, not a
+#      price list; replace with the organisation's real rates.
+version: "2026.11.22-provisional"
+currency: USD
+
+bands:
+  low:
+    input_per_1k: "0.00025"
+    output_per_1k: "0.002"
+  medium:
+    input_per_1k: "0.00125"
+    output_per_1k: "0.01"
+  high:
+    input_per_1k: "0.003"
+    output_per_1k: "0.015"
+
+entries:
+  reasoning-small:
+    deployment: gpt-5-mini
+    api: responses
+    api_version: v1
+    reasoning_effort: low
+    highest_classification: internal
+    cost_band: low
+    status: provisional
+    purpose: Narration and overlap checks; small, cheap calls
+
+  reasoning-standard:
+    deployment: gpt-6-luna
+    api: responses
+    api_version: v1
+    reasoning_effort: low
+    highest_classification: internal
+    cost_band: medium
+    status: provisional
+    purpose: Planning, specialist work, review drafting and judgement
+
+  # The Reviewer's model. A different deployment from reasoning-standard, so the review is
+  # independent of the work it reviews (ADR-0009).
+  reasoning-alternate:
+    deployment: gpt-6.1-terra
+    api: responses
+    api_version: v1
+    reasoning_effort: low
+    highest_classification: internal
+    cost_band: high
+    status: provisional
+    purpose: Independent review and arbitration

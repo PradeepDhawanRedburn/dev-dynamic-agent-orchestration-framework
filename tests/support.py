@@ -51,7 +51,7 @@ def make_request(**over: Any) -> AgentRequest:
 class NoTool:
     """A tool that does nothing: the Recruiter only needs the definition."""
 
-    args_model: type = BaseModel
+    args_model: type[BaseModel] = BaseModel
 
     async def run(self, args: dict[str, Any], ctx: dict[str, Any]) -> dict[str, Any]:
         return {}

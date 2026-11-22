@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Any, Literal, Protocol
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from orchestrator.contracts import AgentRequest, Classification, Contract, LeadRole, ToolPermission
 
@@ -32,7 +32,7 @@ class ToolDefinition(Contract):
 class ToolImpl(Protocol):
     """A reviewed implementation. `args_model` is the Pydantic model for its input."""
 
-    args_model: type
+    args_model: type[BaseModel]
 
     async def run(self, args: dict[str, Any], ctx: dict[str, Any]) -> dict[str, Any]: ...
 

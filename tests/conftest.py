@@ -9,6 +9,7 @@ cannot pass as green.
 
 import asyncio
 import os
+import pathlib
 import secrets
 import shutil
 import subprocess
@@ -24,6 +25,35 @@ POSTGRES_IMAGE = (
     "postgres:17-alpine@sha256:526f86d93c6ea08fd3f1fe5605650cacc781b2c6013169a0ad8f42c7d3d84f32"
 )
 ON_CI = bool(os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"))
+FOUNDRY_VARIABLES = ("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY")
+
+
+def load_foundry_settings() -> None:
+    """Read AZURE_* settings from the git-ignored .env; a variable already set wins. Empty values
+    are ignored, so copying .env.example does not switch the Foundry tests on. Nothing else is
+    read from .env, and no tracing variable is ever set."""
+    env_file = pathlib.Path(__file__).resolve().parents[1] / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        key, separator, value = line.partition("=")
+        key, value = key.strip(), value.strip()
+        if separator and key.startswith("AZURE_") and value and not line.lstrip().startswith("#"):
+            os.environ.setdefault(key, value)
+
+
+load_foundry_settings()
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    if all(os.environ.get(name) for name in FOUNDRY_VARIABLES):
+        return
+    skip = pytest.mark.skip(
+        reason=f"needs Microsoft Foundry: set {' and '.join(FOUNDRY_VARIABLES)} (could not test)"
+    )
+    for item in items:
+        if "foundry" in item.keywords:
+            item.add_marker(skip)
 
 
 def run_async[T](coro: Coroutine[Any, Any, T]) -> T:
