@@ -69,6 +69,7 @@ class PostgresLedger:
 
     def reserve(self, reservation_id: str, chain: list[str], amount: Decimal) -> None:
         with self._pool.connection() as conn:
+            conn.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (reservation_id,))
             rows = conn.execute(
                 "SELECT scope, limit_amount, committed FROM budget_scopes "
                 "WHERE scope = ANY(%s) ORDER BY scope FOR UPDATE",
@@ -88,7 +89,8 @@ class PostgresLedger:
                     raise BudgetExceeded(scope, scopes[scope]["limit_amount"], used)
             conn.execute(
                 "INSERT INTO budget_reservations (reservation_id, chain, amount, state) "
-                "VALUES (%s, %s, %s, 'reserved')",
+                "VALUES (%s, %s, %s, 'reserved') "
+                "ON CONFLICT (reservation_id) DO NOTHING",
                 (reservation_id, chain, amount),
             )
 
@@ -184,6 +186,7 @@ class PostgresAgentRegistry:
 
     def get(self, agent_id: str) -> AgentRecord:
         with self._pool.connection() as conn:
+            conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
             row = conn.execute(
                 "SELECT agent_id, request_hash, status, spec, retirement "
                 "FROM agent_records WHERE agent_id = %s",
@@ -199,6 +202,7 @@ class PostgresAgentRegistry:
 
     def for_project(self, project_id: str) -> list[AgentRecord]:
         with self._pool.connection() as conn:
+            conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
             rows = conn.execute(
                 "SELECT agent_id, request_hash, status, spec, retirement "
                 "FROM agent_records WHERE project_id = %s ORDER BY created_at, agent_id",
@@ -261,6 +265,34 @@ class PostgresAgentRegistry:
             ).rowcount
         if not updated:
             raise KeyError(agent_id)
+
+    def retire_atomically(
+        self, agent_id: str, retirement: RetirementRecord, final_status: AgentStatus
+    ) -> None:
+        with self._pool.connection() as conn:
+            row = conn.execute(
+                "SELECT status FROM agent_records WHERE agent_id = %s FOR UPDATE", (agent_id,)
+            ).fetchone()
+            if row is None:
+                raise KeyError(agent_id)
+            current = AgentStatus(row["status"])
+            if current != final_status:
+                assert_transition(current, final_status)
+            conn.execute(
+                "UPDATE agent_records SET status = %s, retirement = %s WHERE agent_id = %s",
+                (
+                    final_status.value,
+                    Jsonb(retirement.model_dump(mode="json")),
+                    agent_id,
+                ),
+            )
+            if current != final_status:
+                conn.execute(
+                    "INSERT INTO agent_transitions (agent_id, seq, status) "
+                    "SELECT %s, coalesce(max(seq), 0) + 1, %s FROM agent_transitions "
+                    "WHERE agent_id = %s",
+                    (agent_id, final_status.value, agent_id),
+                )
 
 
 # ---------------------------------------------------------------- evidence
@@ -448,13 +480,16 @@ class PostgresAuditLog:
 
     def verify_chain(self) -> ChainReport:
         with self._pool.connection() as conn:
+            conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
             rows = conn.execute(
                 sql.SQL("SELECT {} FROM audit_events ORDER BY seq").format(AUDIT_COLUMNS)
             ).fetchall()
             head = conn.execute(
                 "SELECT last_seq, last_hash FROM audit_head WHERE id = 1"
             ).fetchone()
-        stored = (head["last_seq"], head["last_hash"]) if head else None
+        if head is None:
+            raise StoredDataCorrupt("audit_head row is missing")
+        stored = (head["last_seq"], head["last_hash"])
         return check_chain([AuditEvent(**row) for row in rows], stored)
 
 

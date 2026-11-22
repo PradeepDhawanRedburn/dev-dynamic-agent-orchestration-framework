@@ -26,6 +26,8 @@ from typing import (
 
 from pydantic import BaseModel, StringConstraints
 
+from orchestrator.contracts import IDENTIFIER_PATTERN
+
 STATE_MODELS: list[type[Any]] = []
 
 
@@ -56,7 +58,10 @@ def _violations(annotation: Any, seen: set[type[Any]]) -> list[str]:
     if origin is Annotated:
         base, *metadata = args
         if base is str:
-            ok = any(isinstance(m, StringConstraints) and m.pattern for m in metadata)
+            ok = any(
+                isinstance(m, StringConstraints) and m.pattern == IDENTIFIER_PATTERN
+                for m in metadata
+            )
             return [] if ok else ["a string without a pattern can hold free text"]
         return _violations(base, seen)
     if annotation in (int, bool, None, type(None)):

@@ -130,9 +130,22 @@ CREATE TABLE decisions (
     overrides_decision_id text REFERENCES decisions (decision_id),
     checkpoint_id         text,
     baseline_version      integer,
-    CHECK (decided_by_kind <> 'human' OR decided_by_role IS NOT NULL),
-    CHECK (outcome <> 'timeout' OR (decided_by_kind = 'rule' AND default_taken IS NOT NULL)),
-    CHECK (type <> 'override' OR (overrides_decision_id IS NOT NULL AND comment <> ''))
+    CHECK (btrim(decided_by) <> ''),
+    CHECK (decided_by_kind <> 'human' OR (decided_by_role IS NOT NULL AND btrim(decided_by_role) <> '')),
+    CHECK (decided_by_kind <> 'agent' OR type = 'answer_to_question'),
+    CHECK (outcome <> 'timeout' OR (
+        decided_by_kind = 'rule'
+        AND btrim(COALESCE(default_taken, '')) <> ''
+        AND decided_by = 'deadline_expired'
+    )),
+    CHECK (decided_by <> 'deadline_expired' OR outcome = 'timeout'),
+    CHECK (type <> 'override' OR (
+        decided_by_kind = 'human'
+        AND overrides_decision_id IS NOT NULL
+        AND btrim(overrides_decision_id) <> ''
+        AND btrim(comment) <> ''
+    )),
+    CHECK (card IS NULL OR btrim(COALESCE(card->>'default', '')) <> '' OR card->>'default' IS NULL)
 );
 CREATE INDEX decisions_project ON decisions (project_id, decided_at);
 CREATE TRIGGER decisions_append_only BEFORE UPDATE OR DELETE ON decisions

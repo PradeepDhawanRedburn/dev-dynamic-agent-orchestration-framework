@@ -76,8 +76,8 @@ class GuardrailMonitor:
         counts[kind] += 1
         verdict = evaluate(counts, agent_id, self._rules)
         if verdict.action == "suspend" and agent_id not in self._suspended:
-            self._suspended.add(agent_id)
             self._suspend(agent_id, f"{verdict.rule} x{verdict.count}")
+            self._suspended.add(agent_id)
         return verdict
 
     def verdict(self, agent_id: str) -> Verdict:

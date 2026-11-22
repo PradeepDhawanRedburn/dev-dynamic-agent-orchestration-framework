@@ -146,22 +146,25 @@ class InMemoryDecisionRegister:
         with self._lock:
             existing = self._decisions.get(decision.decision_id)
             if existing is not None:
-                if existing != decision:
+                if existing != decision.model_copy(deep=True):
                     raise DecisionConflict(f"{decision.decision_id} already exists")
-                return existing
+                return existing.model_copy(deep=True)
             if (
                 decision.overrides_decision_id is not None
                 and decision.overrides_decision_id not in self._decisions
             ):
                 raise KeyError(decision.overrides_decision_id)
-            self._decisions[decision.decision_id] = decision
-            return decision
+            stored = decision.model_copy(deep=True)
+            self._decisions[decision.decision_id] = stored
+            return stored.model_copy(deep=True)
 
     def get(self, decision_id: str) -> DecisionRecord:
-        return self._decisions[decision_id]
+        return self._decisions[decision_id].model_copy(deep=True)
 
     def for_project(self, project_id: str) -> list[DecisionRecord]:
-        found = [d for d in self._decisions.values() if d.project_id == project_id]
+        found = [
+            d.model_copy(deep=True) for d in self._decisions.values() if d.project_id == project_id
+        ]
         return sorted(found, key=lambda d: d.decided_at)
 
     def add_followup(self, decision_id: str, audit_event_id: str) -> None:

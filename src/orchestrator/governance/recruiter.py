@@ -6,6 +6,8 @@ the memory service."""
 from __future__ import annotations
 
 import hashlib
+import json
+import threading
 from collections.abc import Callable, Sequence
 from datetime import datetime
 from typing import Literal, Protocol
@@ -104,11 +106,15 @@ class AgentRegistry(Protocol):
     def for_project(self, project_id: str) -> list[AgentRecord]: ...
     def transition(self, agent_id: str, new: AgentStatus) -> None: ...
     def set_retirement(self, agent_id: str, retirement: RetirementRecord) -> None: ...
+    def retire_atomically(
+        self, agent_id: str, retirement: RetirementRecord, final_status: AgentStatus
+    ) -> None: ...
 
 
 class InMemoryAgentRegistry:
     def __init__(self) -> None:
         self._records: dict[str, AgentRecord] = {}
+        self._lock = threading.Lock()
 
     def add(self, record: AgentRecord) -> None:
         self._records.setdefault(record.spec.agent_id, record)  # a retried node must not reset it
@@ -130,12 +136,27 @@ class InMemoryAgentRegistry:
     def set_retirement(self, agent_id: str, retirement: RetirementRecord) -> None:
         self._records[agent_id].retirement = retirement
 
+    def retire_atomically(
+        self, agent_id: str, retirement: RetirementRecord, final_status: AgentStatus
+    ) -> None:
+        with self._lock:
+            record = self._records[agent_id]
+            if record.status != final_status:
+                if record.status != final_status:
+                    assert_transition(record.status, final_status)
+                record.status = final_status
+                record.history.append((final_status, utcnow()))
+            record.retirement = retirement
+
 
 def request_hash(r: AgentRequest) -> str:
     norm = "|".join(
         [
             r.project_id,
             r.task_id,
+            r.requested_by.value,
+            r.data_classification.value,
+            json.dumps(r.budget.model_dump(mode="json"), sort_keys=True),
             " ".join(r.task_objective.lower().split()),
             ";".join(sorted(s.lower().strip() for s in r.scope)),
             ";".join(sorted(r.capabilities_needed)),
@@ -164,13 +185,28 @@ class Recruiter:
         self.memory, self.policy, self.task_owner = memory, policy, task_owner
         self.skills = skills or SkillLibrary()
         self.semantic_match = semantic_match  # the only model-backed step; optional
+        self._project_locks: dict[str, threading.Lock] = {}
+        self._project_locks_lock = threading.Lock()
+
+    def _project_lock(self, project_id: str) -> threading.Lock:
+        with self._project_locks_lock:
+            return self._project_locks.setdefault(project_id, threading.Lock())
 
     # ------------------------------------------------------------ provision
     def provision(
         self, request: AgentRequest, *, human_approved: bool = False
     ) -> AgentSpecification | Rejection:
+        with self._project_lock(request.project_id):
+            return self._provision_unlocked(request, human_approved=human_approved)
+
+    def _provision_unlocked(
+        self, request: AgentRequest, *, human_approved: bool = False
+    ) -> AgentSpecification | Rejection:
         def reject(code: RejectionCode, detail: str) -> Rejection:
             return Rejection(request_id=request.request_id, code=code, detail=detail)
+
+        if self.task_owner(request.task_id) != request.requested_by:
+            return reject("not_task_owner", "only the accountable lead may staff a task")
 
         project = self.agents.for_project(request.project_id)
         live = [r for r in project if r.status not in TERMINAL | {AgentStatus.RETIRED}]
@@ -178,11 +214,53 @@ class Recruiter:
         # 1. deduplicate: exact, then semantic
         digest = request_hash(request)
         for record in live:
-            if record.request_hash == digest:
+            if (
+                record.request_hash == digest
+                and record.spec.clearance == request.data_classification
+                and record.spec.budget == request.budget
+                and record.spec.workstream_id == request.workstream_id
+            ):
+                if record.status in (
+                    AgentStatus.VALIDATED,
+                    AgentStatus.APPROVED,
+                    AgentStatus.PROVISIONED,
+                ):
+                    agent_id = record.spec.agent_id
+                    namespace = record.spec.memory.namespace
+                    if record.status == AgentStatus.VALIDATED:
+                        self.agents.transition(agent_id, AgentStatus.APPROVED)
+                    elif record.status == AgentStatus.APPROVED:
+                        pass
+                    self.memory.create(namespace)
+                    self.credentials.issue(
+                        agent_id,
+                        record.spec.tools,
+                        request.budget.timeout_seconds + self.policy.credential_margin_s,
+                    )
+                    self.agents.transition(agent_id, AgentStatus.PROVISIONED)
+                    self.agents.transition(agent_id, AgentStatus.REGISTERED)
+                    record.spec.status = AgentStatus.REGISTERED
                 return record.spec
-        if (
-            match := self.semantic_match(request, live)
-        ) is not None and match.spec.workstream_id == request.workstream_id:
+        if (match := self.semantic_match(request, live)) is not None and (
+            match.spec.workstream_id == request.workstream_id
+            and match.spec.clearance == request.data_classification
+            and match.spec.budget == request.budget
+        ):
+            if match.status == AgentStatus.REGISTERED:
+                return match.spec
+            agent_id = match.spec.agent_id
+            namespace = match.spec.memory.namespace
+            if match.status == AgentStatus.VALIDATED:
+                self.agents.transition(agent_id, AgentStatus.APPROVED)
+            self.memory.create(namespace)
+            self.credentials.issue(
+                agent_id,
+                match.spec.tools,
+                request.budget.timeout_seconds + self.policy.credential_margin_s,
+            )
+            self.agents.transition(agent_id, AgentStatus.PROVISIONED)
+            self.agents.transition(agent_id, AgentStatus.REGISTERED)
+            match.spec.status = AgentStatus.REGISTERED
             return match.spec
 
         # 2. validate against policy
@@ -337,8 +415,7 @@ class Recruiter:
             sessions_closed=revoked,
             usage=usage or Usage(),
         )
-        self.agents.transition(agent_id, AgentStatus.RETIRED)
-        self.agents.set_retirement(agent_id, retirement)
+        self.agents.retire_atomically(agent_id, retirement, AgentStatus.RETIRED)
         return retirement
 
     # ------------------------------------------------------------ suspend and resume

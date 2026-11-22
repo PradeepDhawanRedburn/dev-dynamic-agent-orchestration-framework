@@ -133,7 +133,7 @@ class InMemoryAuditLog:
             trace_id, span_id = current_trace_ids()
             event = seal(
                 AuditEvent(
-                    seq=len(self._events) + 1,
+                    seq=self._head[0] + 1,
                     event_id=event_id or new_id("aud"),
                     occurred_at=utcnow(),
                     kind=kind,
@@ -146,7 +146,7 @@ class InMemoryAuditLog:
                     details=dict(details or {}),
                     trace_id=trace_id,
                     span_id=span_id,
-                    prev_hash=self._events[-1].hash if self._events else GENESIS_HASH,
+                    prev_hash=self._head[1],
                     hash="",
                 )
             )
@@ -167,4 +167,5 @@ class InMemoryAuditLog:
         ]
 
     def verify_chain(self) -> ChainReport:
-        return check_chain(list(self._events), self._head)
+        with self._lock:
+            return check_chain(list(self._events), self._head)
