@@ -35,6 +35,7 @@ access. Each has an id cited by the tool catalogue, the skills and the work pack
 | H-26 | Decide ADR-0030 | Repository owner | Accept or change the architect's position on reasoning patterns. | WP-13 stays exploratory | WP-13 |
 | H-27 | Rotate the Foundry API key | Repository owner | The key was pasted into the implementer's session during the spike. Regenerate it in the Foundry resource and update the local `.env`. Prefer managed identity over keys from now on. | A key that has been exposed in a chat session stays valid | Now |
 | H-28 | Provide Azure resources for the three untested spike rows | Cloud platform owner | An Azure Database for PostgreSQL Flexible Server with Entra authentication; an identity with access to the Foundry resource; the Application Insights connection for the Foundry project. Non-production is fine. | Three assumptions stay unverified | WP-10, WP-12 |
+| H-29 | Confirm the personal-data position for model input | Data protection officer and Legal | Confirm that the sponsor's request, and tool results, may reach the Foundry deployment without redaction while every model is capped at Internal; say whether names, addresses and national identifiers must also be detected in results (ADR-0035 points 7 and 8). | The position stays the architect's assumption, not a decision of the data owner | WP-06, WP-12 |
 
 ## How to hand something over
 

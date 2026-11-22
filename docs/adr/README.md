@@ -42,5 +42,6 @@ One decision per file. A decision is **Proposed** until the repository owner acc
 | [0032](0032-human-override.md) | A person can override an agent, with a reason, on the record | Accepted |
 | [0033](0033-decisions-from-the-architecture-spike.md) | Decisions from the architecture spike | Accepted |
 | [0034](0034-store-access-and-limits-of-the-audit-record.md) | Store access from async nodes, and what the audit record proves | Accepted |
+| [0035](0035-personal-data-at-the-result-boundary-and-prompt-location.md) | Personal data at the result boundary, and where prompt files are found | Accepted; amends 0033 |
 
 New ADRs use [template.md](template.md).
