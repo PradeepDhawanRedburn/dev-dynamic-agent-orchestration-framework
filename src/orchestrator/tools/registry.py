@@ -65,12 +65,19 @@ class ToolRegistry:
     def resolve_grants(self, request: AgentRequest) -> list[ToolPermission]:
         """Least privilege: one tool per requested capability, each one checked
         against role, classification and the consequential-tool ban."""
+        if request.budget.max_tool_calls == 0 and request.capabilities_needed:
+            raise PermissionDenied("tool capabilities are not allowed by a zero-call budget")
         grants: list[ToolPermission] = []
         for capability in request.capabilities_needed:
-            candidates = [d for d in self._defs.values() if capability in d.capability_tags]
+            candidates = [
+                d
+                for d in {name: self.latest(name) for name in {n for n, _ in self._defs}}
+                .values()
+                if capability in d.capability_tags
+            ]
             if not candidates:
                 raise PermissionDenied(f"no registered tool provides '{capability}'")
-            tool = self.latest(sorted(candidates, key=lambda d: d.name)[0].name)
+            tool = sorted(candidates, key=lambda d: d.name)[0]
             self.check(tool, request.requested_by, request.data_classification)
             if tool.name not in {g.tool_name for g in grants}:
                 grants.append(

@@ -33,16 +33,16 @@ class InMemoryEvidenceStore:
     def put(self, evidence: Evidence) -> None:
         existing = self._items.get(evidence.evidence_id)
         if existing is None:
-            self._items[evidence.evidence_id] = evidence
-        elif existing != evidence:
+            self._items[evidence.evidence_id] = evidence.model_copy(deep=True)
+        elif existing != evidence.model_copy(deep=True):
             raise EvidenceConflict(f"{evidence.evidence_id} already exists with other content")
 
     def get(self, evidence_id: str) -> Evidence:
-        return self._items[evidence_id]
+        return self._items[evidence_id].model_copy(deep=True)
 
     def for_agent(self, project_id: str, agent_id: str) -> list[Evidence]:
         return [
-            e
+            e.model_copy(deep=True)
             for e in self._items.values()
             if e.project_id == project_id and e.captured_by_agent == agent_id
         ]

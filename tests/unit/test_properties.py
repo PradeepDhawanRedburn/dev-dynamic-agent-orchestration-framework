@@ -166,6 +166,7 @@ def run_operations(ledger: BudgetLedger, ops: list[tuple[Any, ...]], prefix: str
                 ledger.settle(rid, Usage(cost=cost))
             else:
                 ledger.release(rid)
+                reserved.pop(rid, None)
             log.append(("ok", kind))
         except BudgetExceeded as error:
             log.append(("exceeded", error.scope.removeprefix(prefix), error.limit, error.attempted))
