@@ -6,6 +6,7 @@ the memory service."""
 from __future__ import annotations
 
 import hashlib
+import json
 import threading
 from collections.abc import Callable, Sequence
 from datetime import datetime
@@ -145,7 +146,7 @@ class InMemoryAgentRegistry:
                     assert_transition(record.status, final_status)
                 record.status = final_status
                 record.history.append((final_status, utcnow()))
-            record.retirement = retirement.model_copy(deep=True)
+            record.retirement = retirement
 
 
 def request_hash(r: AgentRequest) -> str:
@@ -155,7 +156,7 @@ def request_hash(r: AgentRequest) -> str:
             r.task_id,
             r.requested_by.value,
             r.data_classification.value,
-            str(r.budget.model_dump(mode="json", sort_keys=True)),
+            json.dumps(r.budget.model_dump(mode="json"), sort_keys=True),
             " ".join(r.task_objective.lower().split()),
             ";".join(sorted(s.lower().strip() for s in r.scope)),
             ";".join(sorted(r.capabilities_needed)),
@@ -240,9 +241,7 @@ class Recruiter:
                     self.agents.transition(agent_id, AgentStatus.REGISTERED)
                     record.spec.status = AgentStatus.REGISTERED
                 return record.spec
-        if (
-            match := self.semantic_match(request, live)
-        ) is not None and (
+        if (match := self.semantic_match(request, live)) is not None and (
             match.spec.workstream_id == request.workstream_id
             and match.spec.clearance == request.data_classification
             and match.spec.budget == request.budget

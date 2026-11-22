@@ -163,9 +163,7 @@ class InMemoryDecisionRegister:
 
     def for_project(self, project_id: str) -> list[DecisionRecord]:
         found = [
-            d.model_copy(deep=True)
-            for d in self._decisions.values()
-            if d.project_id == project_id
+            d.model_copy(deep=True) for d in self._decisions.values() if d.project_id == project_id
         ]
         return sorted(found, key=lambda d: d.decided_at)
 

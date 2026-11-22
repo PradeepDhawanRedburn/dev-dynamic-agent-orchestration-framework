@@ -71,8 +71,7 @@ class ToolRegistry:
         for capability in request.capabilities_needed:
             candidates = [
                 d
-                for d in {name: self.latest(name) for name in {n for n, _ in self._defs}}
-                .values()
+                for d in {name: self.latest(name) for name in {n for n, _ in self._defs}}.values()
                 if capability in d.capability_tags
             ]
             if not candidates:

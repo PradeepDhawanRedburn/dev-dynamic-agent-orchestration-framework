@@ -25,6 +25,7 @@ from typing import (
 )
 
 from pydantic import BaseModel, StringConstraints
+
 from orchestrator.contracts import IDENTIFIER_PATTERN
 
 STATE_MODELS: list[type[Any]] = []

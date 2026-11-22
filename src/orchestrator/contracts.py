@@ -377,15 +377,9 @@ class AgentResult(Contract):
     @model_validator(mode="after")
     def _citations_resolve(self) -> AgentResult:
         known = {e.evidence_id for e in self.evidence}
-        wrong_owner = {
-            e.evidence_id
-            for e in self.evidence
-            if e.captured_by_agent != self.agent_id
-        }
+        wrong_owner = {e.evidence_id for e in self.evidence if e.captured_by_agent != self.agent_id}
         if wrong_owner:
-            raise ValueError(
-                f"evidence ids issued to another agent: {sorted(wrong_owner)}"
-            )
+            raise ValueError(f"evidence ids issued to another agent: {sorted(wrong_owner)}")
         cited = {
             i for c in self.output.claims for i in c.evidence_ids + c.contradicting_evidence_ids
         }
