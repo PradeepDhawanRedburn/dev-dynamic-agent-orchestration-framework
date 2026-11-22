@@ -14,6 +14,12 @@ recorded.
 The audit store never depends on the other two (ADR-0014). A trace that is missing or redacted
 does not weaken the audit record.
 
+## What the audit record proves, and what it does not
+
+- **Proves:** nothing stored has been changed, removed or reordered since it was written, when the chain verifies against the anchor kept in immutable storage outside the database.
+- **Does not prove:** that every event is true. A compromised governance service could add a false event. Controls against that are access to the writing role, separate owner credentials, and the security review; see ADR-0034.
+- **Until WP-12:** there is no external anchor and no separate owner credential, so the first statement holds only against the application role.
+
 ## Identifiers carried everywhere
 
 Each appears on every audit event, in checkpoint configuration or state, and as trace metadata.

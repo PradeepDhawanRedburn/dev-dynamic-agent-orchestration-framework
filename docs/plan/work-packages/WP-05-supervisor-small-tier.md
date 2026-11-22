@@ -30,6 +30,7 @@ A single-domain assignment runs from a sponsor's request to an accepted result, 
 
 ## Acceptance criteria
 
+- [ ] Every state model added here is registered with the free-text rule and passes it; stores are reached only through the async facade (ADR-0034).
 - [ ] The phase 2 exit criteria in the roadmap are met with a scripted model.
 - [ ] An assignment with unanswered mandatory questions does not start (tested).
 - [ ] A draft that fails any Definition of Ready item never reaches the approval gate (tested per item).

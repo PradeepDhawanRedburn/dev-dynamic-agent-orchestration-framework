@@ -15,7 +15,7 @@ People clarify, decide, ask and steer through one API and a minimal page.
 
 ## Tasks
 
-1. Implement the decision card with its seven fields.
+1. Implement the decision card with its seven fields. The stored card from WP-02 lacks "what waiting costs"; add it.
 2. Implement an API to list pending decisions, answer one, ask for status, and request a change or a stop.
 3. Verify the approver's Entra identity and role before resuming a run.
 4. Schedule a deadline for each gate and apply the safe default.
